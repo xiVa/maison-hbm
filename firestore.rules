@@ -1,0 +1,97 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ─────────────────────────────────────────────────────
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isDirectrice() {
+      return isAuth() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'directrice';
+    }
+
+    function isOwner(uid) {
+      return isAuth() && request.auth.uid == uid;
+    }
+
+    // ── USERS ────────────────────────────────────────────────────────
+    // Tout membre connecté peut lire les profils (pour afficher les noms)
+    // Seule une directrice peut créer/modifier un profil utilisateur
+    // Un utilisateur peut lire son propre profil
+    match /users/{uid} {
+      allow read:   if isAuth();
+      allow create: if isDirectrice() || isOwner(uid);
+      allow update: if isDirectrice();
+      allow delete: if isDirectrice();
+    }
+
+    // ── MESSAGES ────────────────────────────────────────────────────
+    // Tout membre connecté peut lire et écrire des messages
+    // Seul l'auteur ou une directrice peut supprimer
+    match /messages/{msgId} {
+      allow read:   if isAuth();
+      allow create: if isAuth()
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() > 0
+                    && request.resource.data.text.size() <= 2000;
+      allow update: if isAuth() && resource.data.uid == request.auth.uid;
+      allow delete: if isDirectrice()
+                    || (isAuth() && resource.data.uid == request.auth.uid);
+    }
+
+    // ── NOTES DE SERVICE ────────────────────────────────────────────
+    // Tout membre peut lire
+    // Seules les directrices peuvent créer / supprimer
+    match /notes/{noteId} {
+      allow read:   if isAuth();
+      allow create: if isDirectrice()
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() > 0
+                    && request.resource.data.body is string;
+      allow update: if isDirectrice();
+      allow delete: if isDirectrice();
+    }
+
+    // ── TODOS ────────────────────────────────────────────────────────
+    // Tout membre peut lire, créer et cocher une tâche
+    // Seule une directrice peut supprimer
+    match /todos/{todoId} {
+      allow read:   if isAuth();
+      allow create: if isAuth()
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() > 0;
+      allow update: if isAuth();
+      allow delete: if isDirectrice()
+                    || (isAuth() && resource.data.uid == request.auth.uid);
+    }
+
+    // ── ANNONCES ────────────────────────────────────────────────────
+    // Tout membre peut lire
+    // Seules les directrices peuvent créer / modifier / supprimer
+    match /annonces/{annonceId} {
+      allow read:   if isAuth();
+      allow create: if isDirectrice()
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() > 0;
+      allow update: if isDirectrice();
+      allow delete: if isDirectrice();
+    }
+
+    // ── INFOS BOÎTE ──────────────────────────────────────────────────
+    // Tout membre peut lire
+    // Seules les directrices peuvent gérer le contenu
+    match /infos/{infoId} {
+      allow read:   if isAuth();
+      allow create: if isDirectrice()
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() > 0;
+      allow update: if isDirectrice();
+      allow delete: if isDirectrice();
+    }
+
+  }
+}
