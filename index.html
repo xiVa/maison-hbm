@@ -11,1017 +11,277 @@
   <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-
   <style>
     :root {
-      --green-deep:   #1C3A0A;
-      --green-dark:   #2D5016;
-      --green-mid:    #3D6B1F;
-      --green-sage:   #6B8F47;
-      --green-light:  #A8C280;
-      --green-mist:   #D4E6C0;
-      --cream:        #F5F0E8;
-      --cream-warm:   #EDE5D5;
-      --gold:         #C4A44A;
-      --gold-light:   #E8D08A;
-      --text-dark:    #1A1A12;
-      --text-mid:     #4A4A3A;
-      --text-light:   #7A7A6A;
-      --white:        #FDFAF5;
-      --red-soft:     #C0392B;
-      --radius-sm:    8px;
-      --radius-md:    14px;
-      --radius-lg:    20px;
-      --shadow-soft:  0 2px 16px rgba(28,58,10,0.10);
-      --shadow-card:  0 4px 24px rgba(28,58,10,0.13);
+      --green-deep:  #1C3A0A;
+      --green-dark:  #2D5016;
+      --green-mid:   #3D6B1F;
+      --green-sage:  #6B8F47;
+      --green-light: #A8C280;
+      --green-mist:  #D4E6C0;
+      --cream:       #F5F0E8;
+      --cream-warm:  #EDE5D5;
+      --gold:        #C4A44A;
+      --gold-light:  #E8D08A;
+      --text-dark:   #1A1A12;
+      --text-mid:    #4A4A3A;
+      --text-light:  #7A7A6A;
+      --white:       #FDFAF5;
+      --red-soft:    #C0392B;
+      --radius-sm:   8px;
+      --radius-md:   14px;
+      --radius-lg:   20px;
+      --shadow-soft: 0 2px 16px rgba(28,58,10,0.10);
+      --shadow-card: 0 4px 24px rgba(28,58,10,0.13);
     }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html,body { height:100%; background:var(--cream); color:var(--text-dark); font-family:"DM Sans",sans-serif; font-size:15px; overscroll-behavior:none; }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    /* SCREENS */
+    .screen { display:none; flex-direction:column; height:100dvh; overflow:hidden; }
+    .screen.active { display:flex; }
 
-    html, body {
-      height: 100%;
-      background: var(--cream);
-      color: var(--text-dark);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 15px;
-      overscroll-behavior: none;
-    }
+    /* AUTH */
+    #screen-auth { background:var(--green-deep); align-items:center; justify-content:center; padding:32px 24px; position:relative; overflow:hidden; }
+    #screen-auth::before { content:""; position:absolute; width:500px; height:500px; border-radius:50%; background:radial-gradient(circle,rgba(61,107,31,0.35) 0%,transparent 70%); top:-150px; right:-150px; }
+    #screen-auth::after  { content:""; position:absolute; width:300px; height:300px; border-radius:50%; background:radial-gradient(circle,rgba(196,164,74,0.12) 0%,transparent 70%); bottom:-80px; left:-80px; }
+    .auth-logo { text-align:center; margin-bottom:32px; position:relative; z-index:1; }
+    .auth-logo img { height:80px; object-fit:contain; filter:brightness(0) invert(1); opacity:0.95; }
+    .auth-logo-fallback { font-family:"Cormorant Garamond",serif; font-size:30px; font-weight:300; color:var(--cream); letter-spacing:3px; }
+    .auth-logo-fallback span { color:var(--gold-light); font-weight:600; }
+    .auth-tagline { font-size:11px; color:var(--green-light); letter-spacing:3px; text-transform:uppercase; margin-top:6px; }
+    .auth-card { background:var(--white); border-radius:var(--radius-lg); padding:28px 24px; width:100%; max-width:360px; position:relative; z-index:1; box-shadow:0 20px 60px rgba(0,0,0,0.35); }
+    .auth-card h2 { font-family:"Cormorant Garamond",serif; font-size:22px; font-weight:400; color:var(--text-dark); margin-bottom:18px; }
+    .field { margin-bottom:13px; }
+    .field label { display:block; font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-light); margin-bottom:5px; }
+    .field input,.field select,.field textarea { width:100%; background:var(--cream); border:1.5px solid var(--cream-warm); border-radius:var(--radius-sm); padding:12px 14px; font-family:"DM Sans",sans-serif; font-size:15px; color:var(--text-dark); outline:none; transition:border-color .2s; }
+    .field input:focus,.field select:focus,.field textarea:focus { border-color:var(--green-mid); }
+    .field textarea { resize:none; min-height:80px; }
+    .btn-primary { width:100%; background:var(--green-dark); color:var(--cream); border:none; border-radius:var(--radius-sm); padding:14px; font-family:"DM Sans",sans-serif; font-size:15px; font-weight:600; cursor:pointer; margin-top:8px; transition:background .2s,transform .1s; letter-spacing:.5px; }
+    .btn-primary:active { transform:scale(.98); background:var(--green-deep); }
+    .btn-secondary { background:transparent; color:var(--green-dark); border:1.5px solid var(--green-mid); border-radius:var(--radius-sm); padding:11px 16px; font-family:"DM Sans",sans-serif; font-size:14px; font-weight:500; cursor:pointer; transition:all .2s; }
+    .btn-secondary:active { background:var(--green-mist); }
+    .btn-danger { background:transparent; color:var(--red-soft); border:1.5px solid var(--red-soft); border-radius:var(--radius-sm); padding:11px 16px; font-family:"DM Sans",sans-serif; font-size:14px; font-weight:500; cursor:pointer; }
+    .auth-error { background:#fdecea; color:var(--red-soft); border-radius:var(--radius-sm); padding:10px 14px; font-size:13px; margin-top:10px; display:none; }
 
-    /* ── SCREENS ─────────────────────────────── */
-    .screen {
-      display: none;
-      flex-direction: column;
-      height: 100dvh;
-      overflow: hidden;
-    }
-    .screen.active { display: flex; }
+    /* APP SHELL */
+    #screen-app { background:var(--cream); }
 
-    /* ── AUTH SCREEN ─────────────────────────── */
-    #screen-auth {
-      background: var(--green-deep);
-      align-items: center;
-      justify-content: center;
-      padding: 40px 28px;
-      position: relative;
-      overflow: hidden;
-    }
-    #screen-auth::before {
-      content: '';
-      position: absolute;
-      width: 400px; height: 400px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(61,107,31,0.4) 0%, transparent 70%);
-      top: -100px; right: -100px;
-    }
-    #screen-auth::after {
-      content: '';
-      position: absolute;
-      width: 300px; height: 300px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(196,164,74,0.15) 0%, transparent 70%);
-      bottom: -60px; left: -60px;
-    }
-    .auth-logo {
-      text-align: center;
-      margin-bottom: 40px;
-      position: relative; z-index: 1;
-    }
-    .auth-logo-mark {
-      width: 72px; height: 72px;
-      background: linear-gradient(135deg, var(--green-mid), var(--green-sage));
-      border-radius: 20px;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-    }
-    .auth-logo-mark svg { width: 36px; height: 36px; fill: var(--cream); }
-    .auth-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 32px;
-      font-weight: 300;
-      color: var(--cream);
-      letter-spacing: 2px;
-    }
-    .auth-subtitle {
-      font-size: 12px;
-      color: var(--green-light);
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      margin-top: 4px;
-    }
-    .auth-card {
-      background: var(--white);
-      border-radius: var(--radius-lg);
-      padding: 28px 24px;
-      width: 100%;
-      max-width: 360px;
-      position: relative; z-index: 1;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-    .auth-card h2 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 22px;
-      font-weight: 400;
-      color: var(--text-dark);
-      margin-bottom: 20px;
-    }
-    .field {
-      margin-bottom: 14px;
-    }
-    .field label {
-      display: block;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--text-light);
-      margin-bottom: 6px;
-    }
-    .field input, .field select, .field textarea {
-      width: 100%;
-      background: var(--cream);
-      border: 1.5px solid var(--cream-warm);
-      border-radius: var(--radius-sm);
-      padding: 12px 14px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 15px;
-      color: var(--text-dark);
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .field input:focus, .field select:focus, .field textarea:focus {
-      border-color: var(--green-mid);
-    }
-    .field textarea { resize: none; min-height: 80px; }
-    .btn-primary {
-      width: 100%;
-      background: var(--green-dark);
-      color: var(--cream);
-      border: none;
-      border-radius: var(--radius-sm);
-      padding: 14px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 8px;
-      transition: background 0.2s, transform 0.1s;
-      letter-spacing: 0.5px;
-    }
-    .btn-primary:active { transform: scale(0.98); background: var(--green-deep); }
-    .btn-secondary {
-      background: transparent;
-      color: var(--green-dark);
-      border: 1.5px solid var(--green-mid);
-      border-radius: var(--radius-sm);
-      padding: 11px 16px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-secondary:active { background: var(--green-mist); }
-    .btn-danger {
-      background: transparent;
-      color: var(--red-soft);
-      border: 1.5px solid var(--red-soft);
-      border-radius: var(--radius-sm);
-      padding: 11px 16px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-    }
-    .auth-error {
-      background: #fdecea;
-      color: var(--red-soft);
-      border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      font-size: 13px;
-      margin-top: 10px;
-      display: none;
-    }
+    /* TOPBAR */
+    .topbar { background:var(--green-deep); padding:12px 16px; padding-top:max(env(safe-area-inset-top),12px); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; box-shadow:0 2px 12px rgba(0,0,0,.15); }
+    .topbar-logo img { height:36px; object-fit:contain; filter:brightness(0) invert(1); opacity:.9; }
+    .topbar-logo-text { font-family:"Cormorant Garamond",serif; font-size:22px; font-weight:300; color:var(--cream); letter-spacing:1.5px; }
+    .topbar-logo-text span { color:var(--gold-light); font-weight:600; }
+    .topbar-right { display:flex; align-items:center; gap:10px; }
+    .avatar-btn { width:34px; height:34px; background:var(--green-mid); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:var(--cream); cursor:pointer; border:2px solid var(--green-sage); }
+    .notif-btn { width:34px; height:34px; background:transparent; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; position:relative; }
+    .notif-btn svg { width:22px; height:22px; stroke:var(--cream); fill:none; }
+    .notif-dot { position:absolute; top:6px; right:6px; width:8px; height:8px; background:var(--gold); border-radius:50%; border:1.5px solid var(--green-deep); display:none; }
+    .notif-dot.visible { display:block; }
 
-    /* ── APP SHELL ───────────────────────────── */
-    #screen-app {
-      background: var(--cream);
-    }
-
-    /* TOP BAR */
-    .topbar {
-      background: var(--green-deep);
-      padding: env(safe-area-inset-top, 12px) 16px 12px;
-      padding-top: max(env(safe-area-inset-top), 12px);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-    }
-    .topbar-brand {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 22px;
-      font-weight: 300;
-      color: var(--cream);
-      letter-spacing: 1.5px;
-    }
-    .topbar-brand span { color: var(--gold-light); }
-    .topbar-right { display: flex; align-items: center; gap: 10px; }
-    .avatar-btn {
-      width: 34px; height: 34px;
-      background: var(--green-mid);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--cream);
-      cursor: pointer;
-      border: 2px solid var(--green-sage);
-    }
-    .notif-btn {
-      width: 34px; height: 34px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      position: relative;
-    }
-    .notif-btn svg { width: 22px; height: 22px; stroke: var(--cream); fill: none; }
-    .notif-dot {
-      position: absolute;
-      top: 6px; right: 6px;
-      width: 8px; height: 8px;
-      background: var(--gold);
-      border-radius: 50%;
-      border: 1.5px solid var(--green-deep);
-      display: none;
-    }
-    .notif-dot.visible { display: block; }
-
-    /* CONTENT AREA */
-    .content-area {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-      padding: 16px;
-      padding-bottom: 90px;
-    }
+    /* CONTENT */
+    .content-area { flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; padding:16px; padding-bottom:90px; }
 
     /* BOTTOM NAV */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: var(--green-deep);
-      display: flex;
-      align-items: stretch;
-      padding-bottom: env(safe-area-inset-bottom, 0);
-      box-shadow: 0 -2px 20px rgba(0,0,0,0.2);
-      z-index: 50;
-    }
-    .nav-item {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 4px 8px;
-      cursor: pointer;
-      border: none;
-      background: transparent;
-      color: var(--green-sage);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.5px;
-      transition: color 0.2s;
-      position: relative;
-      gap: 4px;
-    }
-    .nav-item svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; }
-    .nav-item.active { color: var(--gold-light); }
-    .nav-item.active svg { stroke: var(--gold-light); }
-    .nav-badge {
-      position: absolute;
-      top: 6px;
-      right: calc(50% - 16px);
-      background: var(--gold);
-      color: var(--green-deep);
-      font-size: 9px;
-      font-weight: 700;
-      min-width: 16px;
-      height: 16px;
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      padding: 0 4px;
-    }
+    .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--green-deep); display:flex; align-items:stretch; padding-bottom:env(safe-area-inset-bottom,0); box-shadow:0 -2px 20px rgba(0,0,0,.2); z-index:50; }
+    .nav-item { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px 4px 8px; cursor:pointer; border:none; background:transparent; color:var(--green-sage); font-family:"DM Sans",sans-serif; font-size:9px; font-weight:500; letter-spacing:.3px; transition:color .2s; position:relative; gap:3px; }
+    .nav-item svg { width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:1.8; }
+    .nav-item.active { color:var(--gold-light); }
+    .nav-item.active svg { stroke:var(--gold-light); }
+    .nav-badge { position:absolute; top:5px; right:calc(50% - 18px); background:var(--gold); color:var(--green-deep); font-size:9px; font-weight:700; min-width:16px; height:16px; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:0 4px; }
 
-    /* ── TABS (sub navigation) ────────────────── */
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; }
+    /* TABS */
+    .tab-pane { display:none; }
+    .tab-pane.active { display:block; }
 
-    /* ── PAGE HEADER ─────────────────────────── */
-    .page-header {
-      margin-bottom: 16px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-    }
-    .page-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 26px;
-      font-weight: 400;
-      color: var(--text-dark);
-      line-height: 1.1;
-    }
-    .page-subtitle {
-      font-size: 12px;
-      color: var(--text-light);
-      margin-top: 2px;
-    }
-    .btn-icon {
-      width: 38px; height: 38px;
-      background: var(--green-dark);
-      border: none;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-    .btn-icon svg { width: 18px; height: 18px; stroke: var(--cream); fill: none; stroke-width: 2; }
+    /* PAGE HEADER */
+    .page-header { margin-bottom:14px; display:flex; align-items:flex-end; justify-content:space-between; }
+    .page-title { font-family:"Cormorant Garamond",serif; font-size:26px; font-weight:400; color:var(--text-dark); line-height:1.1; }
+    .page-subtitle { font-size:12px; color:var(--text-light); margin-top:2px; }
+    .btn-icon { width:38px; height:38px; background:var(--green-dark); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+    .btn-icon svg { width:18px; height:18px; stroke:var(--cream); fill:none; stroke-width:2; }
 
-    /* ── CARDS ───────────────────────────────── */
-    .card {
-      background: var(--white);
-      border-radius: var(--radius-md);
-      padding: 16px;
-      margin-bottom: 10px;
-      box-shadow: var(--shadow-soft);
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
-      position: relative;
-      overflow: hidden;
-    }
-    .card:active { transform: scale(0.99); box-shadow: var(--shadow-card); }
-    .card-accent {
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 4px;
-      border-radius: 4px 0 0 4px;
-    }
-    .card-accent.green  { background: var(--green-mid); }
-    .card-accent.gold   { background: var(--gold); }
-    .card-accent.red    { background: var(--red-soft); }
-    .card-accent.sage   { background: var(--green-sage); }
-    .card-inner { padding-left: 12px; }
-    .card-title {
-      font-weight: 600;
-      font-size: 15px;
-      color: var(--text-dark);
-      margin-bottom: 4px;
-    }
-    .card-meta {
-      font-size: 12px;
-      color: var(--text-light);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .card-meta .dot { width: 3px; height: 3px; background: var(--text-light); border-radius: 50%; }
-    .card-preview {
-      font-size: 13px;
-      color: var(--text-mid);
-      margin-top: 6px;
-      line-height: 1.5;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 3px 8px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.3px;
-    }
-    .badge-green { background: var(--green-mist); color: var(--green-dark); }
-    .badge-gold  { background: #fdf3d4; color: #8a6a10; }
-    .badge-red   { background: #fdecea; color: var(--red-soft); }
-    .badge-gray  { background: var(--cream-warm); color: var(--text-light); }
+    /* CARDS */
+    .card { background:var(--white); border-radius:var(--radius-md); padding:16px; margin-bottom:10px; box-shadow:var(--shadow-soft); cursor:pointer; transition:transform .15s,box-shadow .15s; position:relative; overflow:hidden; }
+    .card:active { transform:scale(.99); }
+    .card-accent { position:absolute; left:0; top:0; bottom:0; width:4px; }
+    .card-accent.green { background:var(--green-mid); }
+    .card-accent.gold  { background:var(--gold); }
+    .card-accent.red   { background:var(--red-soft); }
+    .card-accent.sage  { background:var(--green-sage); }
+    .card-inner { padding-left:12px; }
+    .card-title { font-weight:600; font-size:15px; color:var(--text-dark); margin-bottom:4px; }
+    .card-meta { font-size:12px; color:var(--text-light); display:flex; align-items:center; gap:8px; }
+    .card-meta .dot { width:3px; height:3px; background:var(--text-light); border-radius:50%; }
+    .card-preview { font-size:13px; color:var(--text-mid); margin-top:6px; line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .badge { display:inline-flex; align-items:center; padding:3px 8px; border-radius:20px; font-size:11px; font-weight:600; }
+    .badge-green { background:var(--green-mist); color:var(--green-dark); }
+    .badge-gold  { background:#fdf3d4; color:#8a6a10; }
+    .badge-red   { background:#fdecea; color:var(--red-soft); }
+    .badge-gray  { background:var(--cream-warm); color:var(--text-light); }
 
-    /* ── HOME ────────────────────────────────── */
-    .greeting-block {
-      background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
-      border-radius: var(--radius-lg);
-      padding: 20px;
-      margin-bottom: 16px;
-      position: relative;
-      overflow: hidden;
-    }
-    .greeting-block::after {
-      content: '';
-      position: absolute;
-      right: -20px; top: -20px;
-      width: 120px; height: 120px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.05);
-    }
-    .greeting-name {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 24px;
-      font-weight: 300;
-      color: var(--cream);
-      font-style: italic;
-    }
-    .greeting-role {
-      font-size: 11px;
-      color: var(--green-light);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-top: 2px;
-    }
-    .greeting-date {
-      font-size: 12px;
-      color: rgba(245,240,232,0.6);
-      margin-top: 10px;
-    }
-    .quick-stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-    .stat-card {
-      background: var(--white);
-      border-radius: var(--radius-md);
-      padding: 14px;
-      box-shadow: var(--shadow-soft);
-    }
-    .stat-number {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 32px;
-      font-weight: 600;
-      color: var(--green-dark);
-      line-height: 1;
-    }
-    .stat-label {
-      font-size: 11px;
-      color: var(--text-light);
-      margin-top: 3px;
-      letter-spacing: 0.5px;
-    }
-    .section-label {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--text-light);
-      margin-bottom: 10px;
-      margin-top: 16px;
-    }
+    /* HOME */
+    .greeting-block { background:linear-gradient(135deg,var(--green-dark),var(--green-mid)); border-radius:var(--radius-lg); padding:20px; margin-bottom:16px; position:relative; overflow:hidden; }
+    .greeting-block::after { content:""; position:absolute; right:-20px; top:-20px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,.05); }
+    .greeting-name { font-family:"Cormorant Garamond",serif; font-size:24px; font-weight:300; color:var(--cream); font-style:italic; }
+    .greeting-role { font-size:11px; color:var(--green-light); letter-spacing:2px; text-transform:uppercase; margin-top:2px; }
+    .greeting-date { font-size:12px; color:rgba(245,240,232,.6); margin-top:10px; }
+    .quick-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+    .stat-card { background:var(--white); border-radius:var(--radius-md); padding:14px; box-shadow:var(--shadow-soft); }
+    .stat-number { font-family:"Cormorant Garamond",serif; font-size:32px; font-weight:600; color:var(--green-dark); line-height:1; }
+    .stat-label { font-size:11px; color:var(--text-light); margin-top:3px; }
+    .section-label { font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-light); margin-bottom:10px; margin-top:16px; }
 
-    /* ── MESSAGES ────────────────────────────── */
-    .msg-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding-bottom: 8px;
-    }
-    .msg-bubble {
-      max-width: 82%;
-      padding: 10px 14px;
-      border-radius: 18px;
-      font-size: 14px;
-      line-height: 1.5;
-      position: relative;
-      word-break: break-word;
-    }
-    .msg-bubble.mine {
-      align-self: flex-end;
-      background: var(--green-dark);
-      color: var(--cream);
-      border-bottom-right-radius: 6px;
-    }
-    .msg-bubble.other {
-      align-self: flex-start;
-      background: var(--white);
-      color: var(--text-dark);
-      border-bottom-left-radius: 6px;
-      box-shadow: var(--shadow-soft);
-    }
-    .msg-sender {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--green-sage);
-      margin-bottom: 3px;
-    }
-    .msg-time {
-      font-size: 10px;
-      opacity: 0.6;
-      margin-top: 4px;
-      text-align: right;
-    }
-    .msg-input-bar {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: var(--white);
-      border-top: 1px solid var(--cream-warm);
-      padding: 10px 12px;
-      padding-bottom: max(10px, env(safe-area-inset-bottom));
-      display: flex;
-      gap: 8px;
-      align-items: flex-end;
-      z-index: 40;
-    }
-    .msg-input-bar textarea {
-      flex: 1;
-      background: var(--cream);
-      border: 1.5px solid var(--cream-warm);
-      border-radius: 20px;
-      padding: 10px 16px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      color: var(--text-dark);
-      outline: none;
-      resize: none;
-      max-height: 100px;
-      overflow-y: auto;
-      line-height: 1.4;
-    }
-    .msg-input-bar textarea:focus { border-color: var(--green-mid); }
-    .send-btn {
-      width: 40px; height: 40px;
-      background: var(--green-dark);
-      border: none;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: background 0.2s;
-    }
-    .send-btn svg { width: 18px; height: 18px; stroke: var(--cream); fill: none; stroke-width: 2; }
-    .send-btn:active { background: var(--green-deep); }
-    .channel-header {
-      background: var(--white);
-      border-radius: var(--radius-md);
-      padding: 12px 16px;
-      margin-bottom: 12px;
-      box-shadow: var(--shadow-soft);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .channel-icon {
-      width: 36px; height: 36px;
-      background: var(--green-mist);
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      font-size: 16px;
-    }
-    .channel-name { font-weight: 600; font-size: 15px; color: var(--text-dark); }
-    .channel-members { font-size: 12px; color: var(--text-light); }
+    /* MESSAGES */
+    .msg-area { display:flex; flex-direction:column; gap:8px; padding-bottom:4px; }
+    .msg-row { display:flex; flex-direction:column; }
+    .msg-row.mine { align-items:flex-end; }
+    .msg-row.other { align-items:flex-start; }
+    .msg-bubble { max-width:82%; padding:10px 14px; border-radius:18px; font-size:14px; line-height:1.5; word-break:break-word; }
+    .msg-bubble.mine  { background:var(--green-dark); color:var(--cream); border-bottom-right-radius:6px; }
+    .msg-bubble.other { background:var(--white); color:var(--text-dark); border-bottom-left-radius:6px; box-shadow:var(--shadow-soft); }
+    .msg-sender { font-size:11px; font-weight:600; color:var(--green-sage); margin-bottom:3px; }
+    .msg-time { font-size:10px; opacity:.6; margin-top:4px; text-align:right; }
+    .msg-input-bar { position:fixed; bottom:0; left:0; right:0; background:var(--white); border-top:1px solid var(--cream-warm); padding:10px 12px; padding-bottom:max(10px,env(safe-area-inset-bottom)); display:none; gap:8px; align-items:flex-end; z-index:49; }
+    .msg-input-bar textarea { flex:1; background:var(--cream); border:1.5px solid var(--cream-warm); border-radius:20px; padding:10px 16px; font-family:"DM Sans",sans-serif; font-size:14px; color:var(--text-dark); outline:none; resize:none; max-height:100px; overflow-y:auto; line-height:1.4; }
+    .msg-input-bar textarea:focus { border-color:var(--green-mid); }
+    .send-btn { width:40px; height:40px; background:var(--green-dark); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+    .send-btn svg { width:18px; height:18px; stroke:var(--cream); fill:none; stroke-width:2; }
+    .send-btn:active { background:var(--green-deep); }
+    .channel-header { background:var(--white); border-radius:var(--radius-md); padding:12px 16px; margin-bottom:12px; box-shadow:var(--shadow-soft); display:flex; align-items:center; gap:10px; }
+    .channel-icon { width:36px; height:36px; background:var(--green-mist); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:16px; }
 
-    /* ── NOTES DE SERVICE ────────────────────── */
-    .note-priority-bar {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 12px;
-    }
-    .priority-chip {
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      border: 1.5px solid transparent;
-      transition: all 0.2s;
-    }
-    .priority-chip.active-chip { border-color: var(--green-dark); }
+    /* NOTES */
+    .chips-scroll { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; margin-bottom:12px; -ms-overflow-style:none; scrollbar-width:none; }
+    .chips-scroll::-webkit-scrollbar { display:none; }
+    .chip { padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap; cursor:pointer; border:1.5px solid var(--cream-warm); background:var(--white); color:var(--text-mid); transition:all .2s; }
+    .chip.active { background:var(--green-dark); border-color:var(--green-dark); color:var(--cream); }
 
-    /* ── TODO ────────────────────────────────── */
-    .todo-item {
-      background: var(--white);
-      border-radius: var(--radius-md);
-      padding: 14px 16px;
-      margin-bottom: 8px;
-      box-shadow: var(--shadow-soft);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .todo-check {
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      border: 2px solid var(--green-mid);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .todo-check.checked {
-      background: var(--green-mid);
-      border-color: var(--green-mid);
-    }
-    .todo-check.checked svg { display: block; }
-    .todo-check svg { display: none; width: 12px; height: 12px; stroke: var(--white); fill: none; stroke-width: 3; }
-    .todo-text {
-      flex: 1;
-      font-size: 14px;
-      color: var(--text-dark);
-      line-height: 1.4;
-    }
-    .todo-text.done {
-      text-decoration: line-through;
-      color: var(--text-light);
-    }
-    .todo-assignee {
-      font-size: 11px;
-      color: var(--text-light);
-      margin-top: 2px;
-    }
+    /* TODO */
+    .todo-item { background:var(--white); border-radius:var(--radius-md); padding:14px 16px; margin-bottom:8px; box-shadow:var(--shadow-soft); display:flex; align-items:center; gap:12px; }
+    .todo-check { width:22px; height:22px; border-radius:50%; border:2px solid var(--green-mid); display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer; transition:all .2s; }
+    .todo-check.checked { background:var(--green-mid); border-color:var(--green-mid); }
+    .todo-check.checked svg { display:block; }
+    .todo-check svg { display:none; width:12px; height:12px; stroke:var(--white); fill:none; stroke-width:3; }
+    .todo-text { flex:1; font-size:14px; color:var(--text-dark); line-height:1.4; }
+    .todo-text.done { text-decoration:line-through; color:var(--text-light); }
+    .todo-assignee { font-size:11px; color:var(--text-light); margin-top:2px; }
 
-    /* ── INFOS / DOCS ────────────────────────── */
-    .info-section {
-      background: var(--white);
-      border-radius: var(--radius-md);
-      margin-bottom: 10px;
-      box-shadow: var(--shadow-soft);
-      overflow: hidden;
-    }
-    .info-section-header {
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-    }
-    .info-section-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 600;
-      font-size: 14px;
-      color: var(--text-dark);
-    }
-    .info-section-icon {
-      width: 32px; height: 32px;
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 15px;
-    }
-    .info-section-body {
-      border-top: 1px solid var(--cream-warm);
-      padding: 12px 16px;
-      display: none;
-    }
-    .info-section-body.open { display: block; }
-    .info-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--cream);
-    }
-    .info-row:last-child { border-bottom: none; }
-    .info-row-label { font-size: 12px; color: var(--text-light); min-width: 100px; flex-shrink: 0; }
-    .info-row-value { font-size: 13px; color: var(--text-dark); flex: 1; }
+    /* INFOS */
+    .info-section { background:var(--white); border-radius:var(--radius-md); margin-bottom:10px; box-shadow:var(--shadow-soft); overflow:hidden; }
+    .info-section-header { padding:14px 16px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
+    .info-section-title { display:flex; align-items:center; gap:10px; font-weight:600; font-size:14px; color:var(--text-dark); }
+    .info-section-icon { width:32px; height:32px; border-radius:8px; background:var(--green-mist); display:flex; align-items:center; justify-content:center; font-size:15px; }
+    .info-section-body { border-top:1px solid var(--cream-warm); padding:12px 16px; display:none; }
+    .info-section-body.open { display:block; }
 
-    /* ── ADMIN ───────────────────────────────── */
-    .user-card {
-      background: var(--white);
-      border-radius: var(--radius-md);
-      padding: 14px 16px;
-      margin-bottom: 8px;
-      box-shadow: var(--shadow-soft);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .user-avatar {
-      width: 42px; height: 42px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--green-mid), var(--green-sage));
-      display: flex; align-items: center; justify-content: center;
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--cream);
-      flex-shrink: 0;
-    }
-    .user-info { flex: 1; }
-    .user-name { font-weight: 600; font-size: 14px; color: var(--text-dark); }
-    .user-email { font-size: 12px; color: var(--text-light); margin-top: 1px; }
-    .user-actions { display: flex; gap: 6px; }
+    /* ADMIN */
+    .user-card { background:var(--white); border-radius:var(--radius-md); padding:14px 16px; margin-bottom:8px; box-shadow:var(--shadow-soft); display:flex; align-items:center; gap:12px; }
+    .user-avatar { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,var(--green-mid),var(--green-sage)); display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; color:var(--cream); flex-shrink:0; }
+    .user-info { flex:1; min-width:0; }
+    .user-name  { font-weight:600; font-size:14px; color:var(--text-dark); }
+    .user-email { font-size:12px; color:var(--text-light); margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
-    /* ── MODAL ───────────────────────────────── */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 100;
-      display: none;
-      align-items: flex-end;
-      padding: 0;
-      backdrop-filter: blur(2px);
-    }
-    .modal-overlay.open { display: flex; }
-    .modal-sheet {
-      background: var(--white);
-      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-      padding: 20px 20px 32px;
-      padding-bottom: max(32px, env(safe-area-inset-bottom));
-      width: 100%;
-      max-height: 90dvh;
-      overflow-y: auto;
-      animation: slideUp 0.3s ease;
-    }
-    @keyframes slideUp {
-      from { transform: translateY(30px); opacity: 0; }
-      to   { transform: translateY(0);    opacity: 1; }
-    }
-    .modal-handle {
-      width: 36px; height: 4px;
-      background: var(--cream-warm);
-      border-radius: 2px;
-      margin: 0 auto 18px;
-    }
-    .modal-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 22px;
-      font-weight: 400;
-      color: var(--text-dark);
-      margin-bottom: 16px;
-    }
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 16px;
-    }
-    .modal-actions > * { flex: 1; }
+    /* MODAL */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:100; display:none; align-items:flex-end; backdrop-filter:blur(2px); }
+    .modal-overlay.open { display:flex; }
+    .modal-sheet { background:var(--white); border-radius:var(--radius-lg) var(--radius-lg) 0 0; padding:20px 20px; padding-bottom:max(28px,env(safe-area-inset-bottom)); width:100%; max-height:92dvh; overflow-y:auto; animation:slideUp .28s ease; }
+    @keyframes slideUp { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+    .modal-handle { width:36px; height:4px; background:var(--cream-warm); border-radius:2px; margin:0 auto 16px; }
+    .modal-title { font-family:"Cormorant Garamond",serif; font-size:22px; font-weight:400; color:var(--text-dark); margin-bottom:14px; }
+    .modal-actions { display:flex; gap:10px; margin-top:14px; }
+    .modal-actions > * { flex:1; }
 
-    /* ── DETAIL VIEW ─────────────────────────── */
-    .detail-view {
-      position: fixed;
-      inset: 0;
-      background: var(--cream);
-      z-index: 80;
-      display: none;
-      flex-direction: column;
-    }
-    .detail-view.open { display: flex; }
-    .detail-topbar {
-      background: var(--green-deep);
-      padding: env(safe-area-inset-top, 12px) 16px 12px;
-      padding-top: max(env(safe-area-inset-top), 12px);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-shrink: 0;
-    }
-    .back-btn {
-      width: 34px; height: 34px;
-      background: rgba(255,255,255,0.1);
-      border: none;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-    }
-    .back-btn svg { width: 18px; height: 18px; stroke: var(--cream); fill: none; stroke-width: 2.5; }
-    .detail-topbar-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 20px;
-      font-weight: 300;
-      color: var(--cream);
-      flex: 1;
-    }
-    .detail-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px 16px 32px;
-    }
-    .detail-body {
-      font-size: 15px;
-      color: var(--text-dark);
-      line-height: 1.7;
-      white-space: pre-wrap;
-    }
-    .detail-author {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 16px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--cream-warm);
-    }
-    .detail-author .avatar {
-      width: 36px; height: 36px;
-      background: linear-gradient(135deg, var(--green-mid), var(--green-sage));
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 600; color: var(--cream);
-    }
-    .detail-author-name { font-weight: 600; font-size: 14px; }
-    .detail-author-date { font-size: 12px; color: var(--text-light); }
+    /* DETAIL VIEW */
+    .detail-view { position:fixed; inset:0; background:var(--cream); z-index:80; display:none; flex-direction:column; }
+    .detail-view.open { display:flex; }
+    .detail-topbar { background:var(--green-deep); padding:12px 16px; padding-top:max(env(safe-area-inset-top),12px); display:flex; align-items:center; gap:12px; flex-shrink:0; }
+    .back-btn { width:34px; height:34px; background:rgba(255,255,255,.1); border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+    .back-btn svg { width:18px; height:18px; stroke:var(--cream); fill:none; stroke-width:2.5; }
+    .detail-topbar-title { font-family:"Cormorant Garamond",serif; font-size:18px; font-weight:300; color:var(--cream); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .detail-content { flex:1; overflow-y:auto; padding:20px 16px 32px; }
+    .detail-body { font-size:15px; color:var(--text-dark); line-height:1.7; white-space:pre-wrap; }
+    .detail-author { display:flex; align-items:center; gap:10px; margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--cream-warm); }
+    .detail-author .avatar { width:36px; height:36px; background:linear-gradient(135deg,var(--green-mid),var(--green-sage)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:var(--cream); }
 
-    /* ── TOAST ───────────────────────────────── */
-    .toast {
-      position: fixed;
-      bottom: 90px; left: 16px; right: 16px;
-      background: var(--green-deep);
-      color: var(--cream);
-      border-radius: var(--radius-md);
-      padding: 13px 16px;
-      font-size: 14px;
-      z-index: 200;
-      display: none;
-      align-items: center;
-      gap: 10px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-    }
-    .toast.visible { display: flex; }
-    .toast-icon { font-size: 16px; }
+    /* PROFILE */
+    .profile-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:90; display:none; backdrop-filter:blur(2px); }
+    .profile-overlay.open { display:block; }
+    .profile-sheet { position:absolute; top:0; right:0; width:280px; height:100%; background:var(--green-deep); padding:max(env(safe-area-inset-top),48px) 20px 32px; display:flex; flex-direction:column; }
+    .profile-avatar-big { width:64px; height:64px; background:linear-gradient(135deg,var(--green-mid),var(--green-sage)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:600; color:var(--cream); margin-bottom:12px; }
+    .profile-name { font-family:"Cormorant Garamond",serif; font-size:22px; font-weight:300; color:var(--cream); font-style:italic; }
+    .profile-role-tag { display:inline-flex; padding:3px 10px; background:var(--green-mid); border-radius:20px; font-size:11px; color:var(--green-mist); letter-spacing:1px; margin-top:6px; width:fit-content; }
+    .profile-logout { margin-top:auto; background:transparent; border:1.5px solid rgba(255,255,255,.2); color:rgba(255,255,255,.7); border-radius:var(--radius-sm); padding:12px; font-family:"DM Sans",sans-serif; font-size:14px; cursor:pointer; width:100%; }
 
-    /* ── EMPTY STATE ─────────────────────────── */
-    .empty-state {
-      text-align: center;
-      padding: 48px 24px;
-      color: var(--text-light);
-    }
-    .empty-icon {
-      font-size: 40px;
-      margin-bottom: 12px;
-      opacity: 0.4;
-    }
-    .empty-text { font-size: 14px; line-height: 1.6; }
+    /* TOAST */
+    .toast { position:fixed; bottom:90px; left:16px; right:16px; background:var(--green-deep); color:var(--cream); border-radius:var(--radius-md); padding:13px 16px; font-size:14px; z-index:200; display:none; align-items:center; gap:10px; box-shadow:0 8px 24px rgba(0,0,0,.2); }
+    .toast.visible { display:flex; }
 
-    /* ── DIVIDER ─────────────────────────────── */
-    .divider {
-      height: 1px;
-      background: var(--cream-warm);
-      margin: 12px 0;
-    }
+    /* EMPTY */
+    .empty-state { text-align:center; padding:48px 24px; color:var(--text-light); }
+    .empty-icon  { font-size:38px; margin-bottom:12px; opacity:.4; }
+    .empty-text  { font-size:14px; line-height:1.6; }
 
-    /* ── CHIPS SCROLL ────────────────────────── */
-    .chips-scroll {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-      margin-bottom: 12px;
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    .chips-scroll::-webkit-scrollbar { display: none; }
-    .chip {
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      white-space: nowrap;
-      cursor: pointer;
-      border: 1.5px solid var(--cream-warm);
-      background: var(--white);
-      color: var(--text-mid);
-      transition: all 0.2s;
-    }
-    .chip.active {
-      background: var(--green-dark);
-      border-color: var(--green-dark);
-      color: var(--cream);
-    }
+    /* PDF UPLOAD */
+    .upload-zone { border:2px dashed var(--cream-warm); border-radius:var(--radius-md); padding:24px; text-align:center; cursor:pointer; transition:border-color .2s,background .2s; margin-bottom:12px; }
+    .upload-zone:hover,.upload-zone.drag { border-color:var(--green-mid); background:var(--green-mist); }
+    .upload-zone-icon { font-size:28px; margin-bottom:8px; }
+    .upload-zone-text { font-size:13px; color:var(--text-light); }
+    .upload-zone input { display:none; }
+    .pdf-preview { background:var(--cream); border-radius:var(--radius-sm); padding:10px 14px; font-size:13px; color:var(--text-mid); display:none; align-items:center; gap:10px; margin-bottom:10px; }
+    .pdf-preview.visible { display:flex; }
+    .pdf-preview-icon { font-size:20px; }
 
-    /* ── PROFIL OVERLAY ──────────────────────── */
-    .profile-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 90;
-      display: none;
-      backdrop-filter: blur(2px);
-    }
-    .profile-overlay.open { display: block; }
-    .profile-sheet {
-      position: absolute;
-      top: 0; right: 0;
-      width: 280px;
-      height: 100%;
-      background: var(--green-deep);
-      padding: 48px 20px 32px;
-      display: flex;
-      flex-direction: column;
-    }
-    .profile-avatar-big {
-      width: 64px; height: 64px;
-      background: linear-gradient(135deg, var(--green-mid), var(--green-sage));
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 24px; font-weight: 600; color: var(--cream);
-      margin-bottom: 12px;
-    }
-    .profile-name {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 22px;
-      font-weight: 300;
-      color: var(--cream);
-      font-style: italic;
-    }
-    .profile-role-tag {
-      display: inline-flex;
-      padding: 3px 10px;
-      background: var(--green-mid);
-      border-radius: 20px;
-      font-size: 11px;
-      color: var(--green-mist);
-      letter-spacing: 1px;
-      margin-top: 6px;
-      width: fit-content;
-    }
-    .profile-logout {
-      margin-top: auto;
-      background: transparent;
-      border: 1.5px solid rgba(255,255,255,0.2);
-      color: rgba(255,255,255,0.7);
-      border-radius: var(--radius-sm);
-      padding: 12px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      cursor: pointer;
-      width: 100%;
-      text-align: center;
-    }
+    /* SPINNER */
+    .spinner-wrap { display:flex; align-items:center; justify-content:center; padding:40px; }
+    .spinner { width:28px; height:28px; border:3px solid var(--cream-warm); border-top-color:var(--green-mid); border-radius:50%; animation:spin .7s linear infinite; }
+    @keyframes spin { to{transform:rotate(360deg)} }
 
-    /* Utils */
-    .flex-between { display: flex; align-items: center; justify-content: space-between; }
-    .mt-8 { margin-top: 8px; }
-    .mt-12 { margin-top: 12px; }
-    .hidden { display: none !important; }
-    .admin-only { display: none; }
-    body.role-directrice .admin-only { display: block; }
-    body.role-directrice .admin-only-flex { display: flex; }
-    .admin-only-flex { display: none; }
-
-    .loading-spinner {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 40px;
-    }
-    .spinner {
-      width: 32px; height: 32px;
-      border: 3px solid var(--cream-warm);
-      border-top-color: var(--green-mid);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    /* UTILS */
+    .flex-between { display:flex; align-items:center; justify-content:space-between; }
+    .mt-12 { margin-top:12px; }
+    .hidden { display:none !important; }
+    .admin-only { display:none; }
+    body.role-directrice .admin-only { display:block; }
+    body.role-directrice .admin-only-flex { display:flex; }
+    .admin-only-flex { display:none; }
+    .divider { height:1px; background:var(--cream-warm); margin:12px 0; }
   </style>
 </head>
 <body>
 
-<!-- ════════════ AUTH ════════════ -->
+<!-- AUTH -->
 <div id="screen-auth" class="screen active">
   <div class="auth-logo">
-    <div class="auth-logo-mark">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
-    </div>
-    <div class="auth-title">Maison HBM</div>
-    <div class="auth-subtitle">Espace Équipe</div>
+    <img src="data:image/png;base64,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" alt="Maison HBM" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <div class="auth-logo-fallback" style="display:none">Maison <span>HBM</span></div>
+    <div class="auth-tagline">Espace Équipe</div>
   </div>
   <div class="auth-card">
     <h2>Connexion</h2>
-    <div class="field">
-      <label>Email</label>
-      <input type="email" id="auth-email" placeholder="votre@email.com" autocomplete="email">
-    </div>
-    <div class="field">
-      <label>Mot de passe</label>
-      <input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password">
-    </div>
-    <button class="btn-primary" onclick="doLogin()">Se connecter</button>
+    <div class="field"><label>Email</label><input type="email" id="auth-email" placeholder="votre@email.com" autocomplete="email"></div>
+    <div class="field"><label>Mot de passe</label><input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="btn-primary" id="login-btn" onclick="doLogin()">Se connecter</button>
     <div class="auth-error" id="auth-error"></div>
   </div>
 </div>
 
-<!-- ════════════ APP ════════════ -->
+<!-- APP -->
 <div id="screen-app" class="screen">
-
-  <!-- TOP BAR -->
   <div class="topbar">
-    <div class="topbar-brand">Maison <span>HBM</span></div>
+    <div class="topbar-logo">
+      <img src="data:image/png;base64,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" alt="Maison HBM" style="height:32px;object-fit:contain;filter:brightness(0) invert(1);opacity:.9" onerror="this.style.display='none';document.querySelector('.topbar-logo-text').style.display='block'">
+      <div class="topbar-logo-text" style="display:none">Maison <span>HBM</span></div>
+    </div>
     <div class="topbar-right">
-      <button class="notif-btn" onclick="openNotifs()">
-        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <button class="notif-btn" onclick="openProfile()">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
         <div class="notif-dot" id="notif-dot"></div>
       </button>
       <div class="avatar-btn" id="avatar-btn" onclick="openProfile()"></div>
     </div>
   </div>
 
-  <!-- CONTENT -->
   <div class="content-area" id="main-content">
 
     <!-- HOME -->
@@ -1032,14 +292,8 @@
         <div class="greeting-date" id="home-date"></div>
       </div>
       <div class="quick-stats">
-        <div class="stat-card">
-          <div class="stat-number" id="stat-messages">—</div>
-          <div class="stat-label">Nouveaux messages</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" id="stat-todos">—</div>
-          <div class="stat-label">Tâches en cours</div>
-        </div>
+        <div class="stat-card"><div class="stat-number" id="stat-messages">—</div><div class="stat-label">Messages non lus</div></div>
+        <div class="stat-card"><div class="stat-number" id="stat-todos">—</div><div class="stat-label">Tâches en cours</div></div>
       </div>
       <div class="section-label">Dernières annonces</div>
       <div id="home-annonces"></div>
@@ -1050,37 +304,36 @@
     <!-- MESSAGES -->
     <div class="tab-pane" id="tab-messages">
       <div class="page-header">
-        <div>
-          <div class="page-title">Messages</div>
-          <div class="page-subtitle" id="msg-subtitle">Messagerie équipe</div>
-        </div>
+        <div><div class="page-title">Messages</div><div class="page-subtitle">Messagerie équipe en temps réel</div></div>
       </div>
       <div class="channel-header">
         <div class="channel-icon">💬</div>
         <div>
-          <div class="channel-name">Équipe HBM</div>
-          <div class="channel-members" id="members-count">Chargement…</div>
+          <div style="font-weight:600;font-size:15px;">Équipe HBM</div>
+          <div style="font-size:12px;color:var(--text-light)" id="members-count">Chargement…</div>
         </div>
       </div>
-      <div class="msg-list" id="msg-list" style="padding-bottom: 70px;"></div>
+      <div class="msg-area" id="msg-list"></div>
     </div>
 
     <!-- NOTES -->
     <div class="tab-pane" id="tab-notes">
       <div class="page-header">
-        <div>
-          <div class="page-title">Notes de service</div>
-          <div class="page-subtitle">Circulaires & informations</div>
+        <div><div class="page-title">Notes de service</div><div class="page-subtitle">Circulaires & informations</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-icon admin-only" onclick="openModal('modal-note-pdf')" title="Importer PDF">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          </button>
+          <button class="btn-icon admin-only" onclick="openModal('modal-note')">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
         </div>
-        <button class="btn-icon" onclick="openNewNote()">
-          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
       </div>
       <div class="chips-scroll" id="notes-filter">
-        <div class="chip active" data-filter="all" onclick="filterNotes('all', this)">Toutes</div>
-        <div class="chip" data-filter="urgent" onclick="filterNotes('urgent', this)">🔴 Urgent</div>
-        <div class="chip" data-filter="info" onclick="filterNotes('info', this)">🔵 Info</div>
-        <div class="chip" data-filter="procedure" onclick="filterNotes('procedure', this)">🟢 Procédure</div>
+        <div class="chip active" onclick="filterNotes('all',this)">Toutes</div>
+        <div class="chip" onclick="filterNotes('urgent',this)">🔴 Urgent</div>
+        <div class="chip" onclick="filterNotes('info',this)">🔵 Info</div>
+        <div class="chip" onclick="filterNotes('procedure',this)">🟢 Procédure</div>
       </div>
       <div id="notes-list"></div>
     </div>
@@ -1088,18 +341,15 @@
     <!-- TODO -->
     <div class="tab-pane" id="tab-todo">
       <div class="page-header">
-        <div>
-          <div class="page-title">Tâches</div>
-          <div class="page-subtitle">Todo list équipe</div>
-        </div>
-        <button class="btn-icon" onclick="openNewTodo()">
+        <div><div class="page-title">Tâches</div><div class="page-subtitle">Todo list équipe</div></div>
+        <button class="btn-icon" onclick="openModal('modal-todo')">
           <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
       </div>
       <div class="chips-scroll">
-        <div class="chip active" onclick="filterTodos('all', this)">Toutes</div>
-        <div class="chip" onclick="filterTodos('pending', this)">En cours</div>
-        <div class="chip" onclick="filterTodos('done', this)">Terminées</div>
+        <div class="chip active" onclick="filterTodos('all',this)">Toutes</div>
+        <div class="chip" onclick="filterTodos('pending',this)">En cours</div>
+        <div class="chip" onclick="filterTodos('done',this)">Terminées</div>
       </div>
       <div id="todo-list"></div>
     </div>
@@ -1107,11 +357,8 @@
     <!-- INFOS -->
     <div class="tab-pane" id="tab-infos">
       <div class="page-header">
-        <div>
-          <div class="page-title">Infos boîte</div>
-          <div class="page-subtitle">Documents & contacts</div>
-        </div>
-        <button class="btn-icon admin-only" onclick="openNewInfo()">
+        <div><div class="page-title">Infos boîte</div><div class="page-subtitle">Documents & contacts utiles</div></div>
+        <button class="btn-icon admin-only" onclick="openModal('modal-info')">
           <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
       </div>
@@ -1121,70 +368,62 @@
     <!-- ADMIN -->
     <div class="tab-pane admin-only" id="tab-admin">
       <div class="page-header">
-        <div>
-          <div class="page-title">Administration</div>
-          <div class="page-subtitle">Gestion de l'équipe</div>
-        </div>
-        <button class="btn-icon" onclick="openAddUser()">
+        <div><div class="page-title">Administration</div><div class="page-subtitle">Gestion de l'équipe</div></div>
+        <button class="btn-icon" onclick="openModal('modal-user')">
           <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
       </div>
       <div class="section-label">Membres de l'équipe</div>
       <div id="users-list"></div>
-      <div class="section-label mt-12">Annonces</div>
-      <button class="btn-primary" style="margin-bottom:12px;" onclick="openNewAnnonce()">+ Nouvelle annonce</button>
+      <div class="divider mt-12"></div>
+      <div class="page-header mt-12">
+        <div class="page-title" style="font-size:20px;">Annonces</div>
+        <button class="btn-icon" onclick="openModal('modal-annonce')">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
       <div id="annonces-list"></div>
     </div>
 
   </div>
 
-  <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
-    <button class="nav-item active" data-tab="home" onclick="switchTab('home', this)">
-      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      Accueil
+    <button class="nav-item active" data-tab="home" onclick="switchTab('home',this)">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Accueil
     </button>
-    <button class="nav-item" data-tab="messages" onclick="switchTab('messages', this)">
-      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-      Messages
-      <span class="nav-badge" id="nav-badge-msg" style="display:none">0</span>
+    <button class="nav-item" data-tab="messages" onclick="switchTab('messages',this)">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Messages
+      <span class="nav-badge" id="nav-badge-msg" style="display:none"></span>
     </button>
-    <button class="nav-item" data-tab="notes" onclick="switchTab('notes', this)">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      Notes
+    <button class="nav-item" data-tab="notes" onclick="switchTab('notes',this)">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Notes
     </button>
-    <button class="nav-item" data-tab="todo" onclick="switchTab('todo', this)">
-      <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-      Tâches
+    <button class="nav-item" data-tab="todo" onclick="switchTab('todo',this)">
+      <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Tâches
     </button>
-    <button class="nav-item" data-tab="infos" onclick="switchTab('infos', this)">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-      Infos
+    <button class="nav-item" data-tab="infos" onclick="switchTab('infos',this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>Infos
     </button>
-    <button class="nav-item admin-only" data-tab="admin" onclick="switchTab('admin', this)">
-      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-      Admin
+    <button class="nav-item admin-only" data-tab="admin" onclick="switchTab('admin',this)">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Admin
     </button>
   </nav>
-
 </div>
 
-<!-- ═══ MESSAGE INPUT BAR (messages tab) ═══ -->
-<div class="msg-input-bar" id="msg-input-bar" style="display:none;">
+<!-- MSG INPUT -->
+<div class="msg-input-bar" id="msg-input-bar">
   <textarea id="msg-input" placeholder="Écrire un message…" rows="1" oninput="autoResize(this)" onkeydown="msgKeyDown(event)"></textarea>
   <button class="send-btn" onclick="sendMessage()">
     <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
   </button>
 </div>
 
-<!-- ═══ DETAIL VIEW ═══ -->
+<!-- DETAIL VIEW -->
 <div class="detail-view" id="detail-view">
   <div class="detail-topbar">
-    <button class="back-btn" onclick="closeDetail()">
-      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
+    <button class="back-btn" onclick="closeDetail()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
     <div class="detail-topbar-title" id="detail-topbar-title"></div>
-    <button class="btn-icon admin-only-flex" id="detail-delete-btn" style="background:rgba(192,57,43,0.7);">
+    <button class="btn-icon admin-only-flex" id="detail-delete-btn" style="background:rgba(192,57,43,.7);">
       <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
     </button>
   </div>
@@ -1194,30 +433,27 @@
   </div>
 </div>
 
-<!-- ═══ PROFILE PANEL ═══ -->
+<!-- PROFILE -->
 <div class="profile-overlay" id="profile-overlay" onclick="closeProfile()">
   <div class="profile-sheet" onclick="event.stopPropagation()">
     <div class="profile-avatar-big" id="profile-avatar-big"></div>
     <div class="profile-name" id="profile-name-display"></div>
     <div class="profile-role-tag" id="profile-role-display"></div>
-    <div style="margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-      <div style="font-size:12px; color: var(--green-light); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px;">Mon compte</div>
-      <div style="font-size:13px; color: rgba(245,240,232,0.7);" id="profile-email-display"></div>
+    <div style="margin-top:20px;border-top:1px solid rgba(255,255,255,.1);padding-top:16px;">
+      <div style="font-size:11px;color:var(--green-light);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Compte</div>
+      <div style="font-size:13px;color:rgba(245,240,232,.7)" id="profile-email-display"></div>
     </div>
-    <button class="profile-logout" onclick="doLogout()">Se déconnecter</button>
+    <button class="profile-logout" onclick="doLogout()" style="margin-top:auto;">Se déconnecter</button>
   </div>
 </div>
 
-<!-- ═══ MODALS ═══ -->
-
-<!-- Note modal -->
+<!-- MODAL: Note texte -->
 <div class="modal-overlay" id="modal-note">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title">Nouvelle note de service</div>
     <div class="field"><label>Titre</label><input type="text" id="note-title-input" placeholder="Titre de la note"></div>
-    <div class="field">
-      <label>Catégorie</label>
+    <div class="field"><label>Catégorie</label>
       <select id="note-cat-input">
         <option value="info">🔵 Information</option>
         <option value="urgent">🔴 Urgent</option>
@@ -1232,13 +468,45 @@
   </div>
 </div>
 
-<!-- Todo modal -->
+<!-- MODAL: Note PDF -->
+<div class="modal-overlay" id="modal-note-pdf">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Importer une note PDF</div>
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('pdf-file-input').click()" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+      <div class="upload-zone-icon">📄</div>
+      <div style="font-weight:600;font-size:14px;color:var(--text-dark);margin-bottom:4px;">Déposer un PDF ici</div>
+      <div class="upload-zone-text">ou appuyer pour sélectionner<br>Format : Note de service HBM</div>
+      <input type="file" id="pdf-file-input" accept=".pdf" onchange="handlePdfFile(this.files[0])">
+    </div>
+    <div class="pdf-preview" id="pdf-preview">
+      <div class="pdf-preview-icon">📄</div>
+      <div style="flex:1"><div id="pdf-filename" style="font-weight:600;font-size:13px;"></div><div id="pdf-pages" style="font-size:11px;color:var(--text-light);"></div></div>
+      <button onclick="clearPdf()" style="background:none;border:none;color:var(--text-light);font-size:18px;cursor:pointer;">×</button>
+    </div>
+    <div class="field"><label>Titre de la note</label><input type="text" id="pdf-note-title" placeholder="Titre (auto-détecté du PDF)"></div>
+    <div class="field"><label>Catégorie</label>
+      <select id="pdf-note-cat">
+        <option value="info">🔵 Information</option>
+        <option value="urgent">🔴 Urgent</option>
+        <option value="procedure">🟢 Procédure</option>
+      </select>
+    </div>
+    <div id="pdf-status" style="font-size:13px;color:var(--green-mid);margin-bottom:8px;display:none;"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-note-pdf')">Annuler</button>
+      <button class="btn-primary" id="pdf-publish-btn" onclick="publishPdfNote()">Publier la note</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Todo -->
 <div class="modal-overlay" id="modal-todo">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title">Nouvelle tâche</div>
     <div class="field"><label>Description</label><textarea id="todo-text-input" placeholder="Que faut-il faire ?" style="min-height:80px;"></textarea></div>
-    <div class="field"><label>Assignée à</label><input type="text" id="todo-assignee-input" placeholder="Prénom ou 'Toute l'équipe'"></div>
+    <div class="field"><label>Assignée à</label><input type="text" id="todo-assignee-input" placeholder="Prénom ou &quot;Toute l'équipe&quot;"></div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('modal-todo')">Annuler</button>
       <button class="btn-primary" onclick="saveTodo()">Créer</button>
@@ -1246,13 +514,13 @@
   </div>
 </div>
 
-<!-- Annonce modal -->
+<!-- MODAL: Annonce -->
 <div class="modal-overlay" id="modal-annonce">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title">Nouvelle annonce</div>
     <div class="field"><label>Titre</label><input type="text" id="annonce-title-input" placeholder="Titre de l'annonce"></div>
-    <div class="field"><label>Message</label><textarea id="annonce-body-input" placeholder="Contenu de l'annonce…" style="min-height:100px;"></textarea></div>
+    <div class="field"><label>Message</label><textarea id="annonce-body-input" placeholder="Contenu…" style="min-height:100px;"></textarea></div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('modal-annonce')">Annuler</button>
       <button class="btn-primary" onclick="saveAnnonce()">Publier</button>
@@ -1260,14 +528,14 @@
   </div>
 </div>
 
-<!-- Info modal -->
+<!-- MODAL: Info -->
 <div class="modal-overlay" id="modal-info">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title">Nouvelle section info</div>
-    <div class="field"><label>Titre de la section</label><input type="text" id="info-title-input" placeholder="Ex: Contacts utiles, Procédures…"></div>
+    <div class="field"><label>Titre</label><input type="text" id="info-title-input" placeholder="Ex: Contacts utiles…"></div>
     <div class="field"><label>Icône (emoji)</label><input type="text" id="info-icon-input" placeholder="📋" maxlength="2"></div>
-    <div class="field"><label>Contenu</label><textarea id="info-body-input" placeholder="Contenu de la section…" style="min-height:120px;"></textarea></div>
+    <div class="field"><label>Contenu</label><textarea id="info-body-input" placeholder="Contenu…" style="min-height:120px;"></textarea></div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('modal-info')">Annuler</button>
       <button class="btn-primary" onclick="saveInfo()">Enregistrer</button>
@@ -1275,48 +543,55 @@
   </div>
 </div>
 
-<!-- Add user modal -->
+<!-- MODAL: Utilisateur -->
 <div class="modal-overlay" id="modal-user">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">Ajouter un membre</div>
+    <div class="modal-title" id="modal-user-title">Ajouter un membre</div>
     <div class="field"><label>Prénom & Nom</label><input type="text" id="user-name-input" placeholder="Prénom Nom"></div>
     <div class="field"><label>Email</label><input type="email" id="user-email-input" placeholder="email@exemple.com"></div>
-    <div class="field"><label>Mot de passe temporaire</label><input type="password" id="user-pwd-input" placeholder="Min. 6 caractères"></div>
-    <div class="field">
-      <label>Rôle</label>
+    <div class="field" id="user-pwd-field"><label>Mot de passe temporaire</label><input type="password" id="user-pwd-input" placeholder="Min. 6 caractères"></div>
+    <div class="field"><label>Rôle</label>
       <select id="user-role-input">
         <option value="employee">Employée</option>
-        <option value="directrice">Directrice</option>
+        <option value="directrice">Directrice (Admin)</option>
       </select>
     </div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('modal-user')">Annuler</button>
-      <button class="btn-primary" onclick="saveUser()">Créer</button>
+      <button class="btn-primary" id="user-save-btn" onclick="saveUser()">Créer le compte</button>
     </div>
   </div>
 </div>
 
-<!-- Toast -->
-<div class="toast" id="toast">
-  <span class="toast-icon">✓</span>
-  <span id="toast-msg"></span>
-</div>
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toast-icon">✓</span><span id="toast-msg"></span></div>
 
-<!-- ═══ FIREBASE + APP JS ═══ -->
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+if (typeof pdfjsLib !== "undefined") {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+</script>
+
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
   signOut, onAuthStateChanged
-} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs,
-  deleteDoc, updateDoc, query, orderBy, onSnapshot, serverTimestamp,
-  limit, where
-} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+  deleteDoc, updateDoc, query, orderBy, onSnapshot, serverTimestamp, limit
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// ── CONFIG ────────────────────────────────────────────────────────────
+// ── ADMIN EMAILS (directrices déclarées) ─────────────────────────────
+const ADMIN_EMAILS = [
+  "direction@maison-hbm.com"
+  // Ajouter d'autres emails admin ici si besoin
+];
+
 const firebaseConfig = {
   apiKey: "AIzaSyAvPM3unZiFv3wgLbi10Fx-llUpYxeuPq0",
   authDomain: "maisonhbm-by-joba.firebaseapp.com",
@@ -1331,617 +606,570 @@ const auth = getAuth(app);
 const db   = getFirestore(app);
 
 // ── STATE ─────────────────────────────────────────────────────────────
-let currentUser = null;
-let currentRole = 'employee';
-let currentUserName = '';
-let allNotes = [];
-let allTodos = [];
-let allAnnonces = [];
-let allUsers = [];
-let msgUnsubscribe = null;
-let currentFilter = 'all';
-let currentTodoFilter = 'all';
-let msgSeenCount = 0;
+let currentUser = null, currentRole = "employee", currentUserName = "";
+let allNotes = [], allTodos = [], allAnnonces = [], allUsers = [];
+let msgUnsubscribe = null, currentNoteFilter = "all", currentTodoFilter = "all";
+let currentPdfText = "", currentPdfName = "";
+
+// ── HELPERS ───────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function formatDate(date) {
+  const now = new Date(), d = new Date(date), diff = now - d;
+  if (diff < 60000) return "À l'instant";
+  if (diff < 3600000) return `il y a ${Math.floor(diff/60000)} min`;
+  if (diff < 86400000) return `il y a ${Math.floor(diff/3600000)}h`;
+  return d.toLocaleDateString("fr-FR",{day:"numeric",month:"short"});
+}
+function formatTime(date) {
+  return new Date(date).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+}
+function initials(name) {
+  return String(name||"?").split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2);
+}
+let toastT;
+window.showToast = (msg, ok=true) => {
+  const t = document.getElementById("toast");
+  document.getElementById("toast-icon").textContent = ok ? "✓" : "⚠";
+  document.getElementById("toast-msg").textContent = msg;
+  t.classList.add("visible");
+  clearTimeout(toastT);
+  toastT = setTimeout(()=>t.classList.remove("visible"), 2800);
+};
 
 // ── AUTH ──────────────────────────────────────────────────────────────
 window.doLogin = async () => {
-  const email = document.getElementById('auth-email').value.trim();
-  const pwd   = document.getElementById('auth-password').value;
-  const errEl = document.getElementById('auth-error');
-  errEl.style.display = 'none';
-  if (!email || !pwd) { showErr('Remplissez tous les champs.'); return; }
+  const email = document.getElementById("auth-email").value.trim();
+  const pwd   = document.getElementById("auth-password").value;
+  const errEl = document.getElementById("auth-error");
+  const btn   = document.getElementById("login-btn");
+  errEl.style.display = "none";
+  if (!email||!pwd) { errEl.textContent="Remplissez tous les champs."; errEl.style.display="block"; return; }
+  btn.textContent = "Connexion…"; btn.disabled = true;
   try {
     await signInWithEmailAndPassword(auth, email, pwd);
   } catch(e) {
     const msgs = {
-      'auth/user-not-found':    'Aucun compte trouvé avec cet email.',
-      'auth/wrong-password':    'Mot de passe incorrect.',
-      'auth/invalid-email':     'Email invalide.',
-      'auth/too-many-requests': 'Trop de tentatives. Réessayez plus tard.',
-      'auth/invalid-credential':'Email ou mot de passe incorrect.'
+      "auth/user-not-found":"Aucun compte trouvé.",
+      "auth/wrong-password":"Mot de passe incorrect.",
+      "auth/invalid-email":"Email invalide.",
+      "auth/too-many-requests":"Trop de tentatives.",
+      "auth/invalid-credential":"Email ou mot de passe incorrect."
     };
-    showErr(msgs[e.code] || 'Erreur de connexion.');
+    errEl.textContent = msgs[e.code]||"Erreur de connexion.";
+    errEl.style.display = "block";
+    btn.textContent = "Se connecter"; btn.disabled = false;
   }
-  function showErr(m) { errEl.textContent = m; errEl.style.display = 'block'; }
 };
 
-window.doLogout = async () => {
-  await signOut(auth);
-};
+window.doLogout = async () => { await signOut(auth); closeProfile(); };
 
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
-    await loadUserProfile();
+    await upsertUserProfile(user);
     showApp();
   } else {
-    currentUser = null;
-    showAuth();
+    currentUser = null; currentRole = "employee"; currentUserName = "";
+    document.body.className = "";
+    document.getElementById("screen-app").classList.remove("active");
+    document.getElementById("screen-auth").classList.add("active");
+    document.getElementById("msg-input-bar").style.display = "none";
+    document.getElementById("login-btn").textContent = "Se connecter";
+    document.getElementById("login-btn").disabled = false;
   }
 });
 
-async function loadUserProfile() {
-  const snap = await getDoc(doc(db, 'users', currentUser.uid));
-  if (snap.exists()) {
-    const d = snap.data();
-    currentRole     = d.role || 'employee';
-    currentUserName = d.name || currentUser.email.split('@')[0];
+async function upsertUserProfile(user) {
+  const ref = doc(db, "users", user.uid);
+  const snap = await getDoc(ref);
+  // Auto-promote admin emails to directrice
+  const isAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
+  if (!snap.exists()) {
+    const role = isAdmin ? "directrice" : "employee";
+    const name = user.displayName || user.email.split("@")[0];
+    await setDoc(ref, { name, email: user.email, role, createdAt: serverTimestamp() });
+    currentRole = role; currentUserName = name;
   } else {
-    currentRole     = 'employee';
-    currentUserName = currentUser.email.split('@')[0];
+    const d = snap.data();
+    // If email is in admin list but role is not directrice yet, promote
+    if (isAdmin && d.role !== "directrice") {
+      await updateDoc(ref, { role: "directrice" });
+      currentRole = "directrice";
+    } else {
+      currentRole = d.role || "employee";
+    }
+    currentUserName = d.name || user.email.split("@")[0];
   }
 }
 
-// ── SCREENS ───────────────────────────────────────────────────────────
-function showAuth() {
-  document.getElementById('screen-auth').classList.add('active');
-  document.getElementById('screen-app').classList.remove('active');
-  document.getElementById('msg-input-bar').style.display = 'none';
-}
-
+// ── SHOW APP ──────────────────────────────────────────────────────────
 function showApp() {
-  document.getElementById('screen-auth').classList.remove('active');
-  document.getElementById('screen-app').classList.add('active');
-  // role classes
-  document.body.classList.toggle('role-directrice', currentRole === 'directrice');
-  // profile UI
-  const initials = currentUserName.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  document.getElementById('avatar-btn').textContent = initials;
-  document.getElementById('profile-avatar-big').textContent = initials;
-  document.getElementById('profile-name-display').textContent = currentUserName;
-  document.getElementById('profile-role-display').textContent = currentRole === 'directrice' ? 'Directrice' : 'Employée';
-  document.getElementById('profile-email-display').textContent = currentUser.email;
-  // home
+  document.getElementById("screen-auth").classList.remove("active");
+  document.getElementById("screen-app").classList.add("active");
+  document.body.classList.toggle("role-directrice", currentRole === "directrice");
+  const ini = initials(currentUserName);
+  document.getElementById("avatar-btn").textContent = ini;
+  document.getElementById("profile-avatar-big").textContent = ini;
+  document.getElementById("profile-name-display").textContent = currentUserName;
+  document.getElementById("profile-role-display").textContent = currentRole === "directrice" ? "Directrice · Admin" : "Employée";
+  document.getElementById("profile-email-display").textContent = currentUser.email;
   updateHomeGreeting();
-  // load data
-  loadAnnonces();
-  loadNotes();
-  loadTodos();
-  loadInfos();
-  if (currentRole === 'directrice') loadUsers();
-  // messages real-time
+  loadAnnonces(); loadNotes(); loadTodos(); loadInfos(); loadUsers();
   startMessages();
 }
 
-// ── HOME ──────────────────────────────────────────────────────────────
 function updateHomeGreeting() {
   const h = new Date().getHours();
-  const greet = h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : 'Bonsoir';
-  document.getElementById('home-greeting').textContent = `${greet}, ${currentUserName.split(' ')[0]} !`;
-  document.getElementById('home-role').textContent = currentRole === 'directrice' ? 'Directrice' : 'Employée';
+  const greet = h<12?"Bonjour":h<18?"Bon après-midi":"Bonsoir";
+  document.getElementById("home-greeting").textContent = `${greet}, ${currentUserName.split(" ")[0]} !`;
+  document.getElementById("home-role").textContent = currentRole==="directrice"?"Directrice · Admin":"Employée";
   const d = new Date();
-  const days = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-  const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-  document.getElementById('home-date').textContent = `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  const days=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+  const months=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  document.getElementById("home-date").textContent = `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-// ── MESSAGES ──────────────────────────────────────────────────────────
+// ── MESSAGES (FIXED) ──────────────────────────────────────────────────
 function startMessages() {
   if (msgUnsubscribe) msgUnsubscribe();
-  const q = query(collection(db,'messages'), orderBy('createdAt','asc'), limit(100));
+  const q = query(collection(db,"messages"), orderBy("createdAt","asc"), limit(150));
   msgUnsubscribe = onSnapshot(q, (snap) => {
-    const msgs = snap.docs.map(d => ({id:d.id,...d.data()}));
+    const msgs = snap.docs.map(d=>({id:d.id,...d.data()}));
     renderMessages(msgs);
-    updateMsgBadge(msgs);
+    updateMsgStats(msgs);
+  }, (err) => {
+    console.error("Messages error:", err);
+    document.getElementById("msg-list").innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Erreur de chargement.<br>Vérifiez les règles Firestore.</div></div>';
   });
 }
 
 function renderMessages(msgs) {
-  const list = document.getElementById('msg-list');
-  list.innerHTML = '';
+  const list = document.getElementById("msg-list");
   if (!msgs.length) {
-    list.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-text">Aucun message pour l\'instant.<br>Soyez le premier à écrire !</div></div>';
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-text">Aucun message pour l\'instant.<br>Soyez la première à écrire !</div></div>';
     return;
   }
+  list.innerHTML = "";
   msgs.forEach(m => {
     const mine = m.uid === currentUser.uid;
-    const el = document.createElement('div');
-    el.style.display = 'flex';
-    el.style.flexDirection = 'column';
-    el.style.alignItems = mine ? 'flex-end' : 'flex-start';
-    const bubble = document.createElement('div');
-    bubble.className = `msg-bubble ${mine ? 'mine' : 'other'}`;
+    const row = document.createElement("div");
+    row.className = `msg-row ${mine?"mine":"other"}`;
+    const bubble = document.createElement("div");
+    bubble.className = `msg-bubble ${mine?"mine":"other"}`;
     if (!mine) {
-      const sender = document.createElement('div');
-      sender.className = 'msg-sender';
-      sender.textContent = m.authorName || 'Équipe';
-      bubble.appendChild(sender);
+      const s = document.createElement("div");
+      s.className = "msg-sender";
+      s.textContent = m.authorName || "Équipe";
+      bubble.appendChild(s);
     }
-    const text = document.createElement('div');
-    text.textContent = m.text;
-    bubble.appendChild(text);
-    const time = document.createElement('div');
-    time.className = 'msg-time';
-    time.textContent = m.createdAt ? formatTime(m.createdAt.toDate()) : '';
-    bubble.appendChild(time);
-    el.appendChild(bubble);
-    list.appendChild(el);
+    const txt = document.createElement("div");
+    txt.textContent = m.text;
+    bubble.appendChild(txt);
+    const t = document.createElement("div");
+    t.className = "msg-time";
+    t.textContent = m.createdAt ? formatTime(m.createdAt.toDate()) : "";
+    bubble.appendChild(t);
+    row.appendChild(bubble);
+    list.appendChild(row);
   });
-  setTimeout(() => { list.scrollTop = list.scrollHeight; }, 50);
+  setTimeout(()=>{ list.scrollTop = list.scrollHeight; }, 60);
 }
 
-function updateMsgBadge(msgs) {
-  const badge = document.getElementById('nav-badge-msg');
-  const dot   = document.getElementById('notif-dot');
-  const unseen = msgs.filter(m => m.uid !== currentUser.uid && !m.seenBy?.includes(currentUser.uid)).length;
-  document.getElementById('stat-messages').textContent = unseen;
+function updateMsgStats(msgs) {
+  const unseen = msgs.filter(m => m.uid !== currentUser.uid).length;
+  document.getElementById("stat-messages").textContent = unseen;
+  const badge = document.getElementById("nav-badge-msg");
+  const dot   = document.getElementById("notif-dot");
   if (unseen > 0) {
-    badge.textContent = unseen > 9 ? '9+' : unseen;
-    badge.style.display = 'flex';
-    dot.classList.add('visible');
+    badge.textContent = unseen > 9 ? "9+" : unseen;
+    badge.style.display = "flex";
+    dot.classList.add("visible");
   } else {
-    badge.style.display = 'none';
-    dot.classList.remove('visible');
+    badge.style.display = "none";
+    dot.classList.remove("visible");
   }
 }
 
 window.sendMessage = async () => {
-  const input = document.getElementById('msg-input');
+  const input = document.getElementById("msg-input");
   const text = input.value.trim();
   if (!text) return;
-  input.value = '';
-  input.style.height = '';
+  input.value = ""; input.style.height = "";
   try {
-    await addDoc(collection(db,'messages'), {
-      text,
-      uid: currentUser.uid,
+    await addDoc(collection(db,"messages"), {
+      text, uid: currentUser.uid,
       authorName: currentUserName,
       createdAt: serverTimestamp()
     });
-  } catch(e) { showToast('Erreur envoi message'); }
+  } catch(e) { showToast("Erreur envoi : " + e.message, false); }
 };
 
 window.msgKeyDown = (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.sendMessage(); }
+  if (e.key==="Enter"&&!e.shiftKey) { e.preventDefault(); window.sendMessage(); }
 };
-
-window.autoResize = (el) => {
-  el.style.height = '';
-  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
-};
-
-window.openNotifs = () => showToast('Toutes les notifications sont à jour ✓');
+window.autoResize = (el) => { el.style.height=""; el.style.height=Math.min(el.scrollHeight,100)+"px"; };
 
 // ── NOTES ─────────────────────────────────────────────────────────────
-async function loadNotes() {
-  const q = query(collection(db,'notes'), orderBy('createdAt','desc'));
-  onSnapshot(q, (snap) => {
-    allNotes = snap.docs.map(d => ({id:d.id,...d.data()}));
+function loadNotes() {
+  const q = query(collection(db,"notes"), orderBy("createdAt","desc"));
+  onSnapshot(q, snap => {
+    allNotes = snap.docs.map(d=>({id:d.id,...d.data()}));
     renderNotes(allNotes);
     renderHomeNotes();
-    document.getElementById('stat-todos'); // will be updated by todos
   });
 }
 
 function renderNotes(notes) {
-  const list = document.getElementById('notes-list');
-  const filtered = currentFilter === 'all' ? notes : notes.filter(n => n.category === currentFilter);
-  if (!filtered.length) {
-    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Aucune note de service.</div></div>';
-    return;
-  }
-  list.innerHTML = '';
-  filtered.forEach(n => {
-    const colors = {urgent:'red', info:'sage', procedure:'green'};
-    const labels = {urgent:'🔴 Urgent', info:'🔵 Info', procedure:'🟢 Procédure'};
-    const el = document.createElement('div');
-    el.className = 'card';
-    el.innerHTML = `
-      <div class="card-accent ${colors[n.category]||'sage'}"></div>
+  const list = document.getElementById("notes-list");
+  const f = currentNoteFilter==="all" ? notes : notes.filter(n=>n.category===currentNoteFilter);
+  if (!f.length) { list.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Aucune note de service.</div></div>'; return; }
+  list.innerHTML = "";
+  const catColors = {urgent:"red",info:"sage",procedure:"green"};
+  const catLabels = {urgent:"🔴 Urgent",info:"🔵 Info",procedure:"🟢 Procédure"};
+  const badgeCls  = {urgent:"badge-red",info:"badge-gray",procedure:"badge-green"};
+  f.forEach(n => {
+    const el = document.createElement("div");
+    el.className = "card";
+    const hasPdf = n.pdfText ? "📎 " : "";
+    el.innerHTML = `<div class="card-accent ${catColors[n.category]||"sage"}"></div>
       <div class="card-inner">
-        <div class="flex-between">
-          <div class="card-title">${esc(n.title)}</div>
-          <span class="badge badge-${n.category==='urgent'?'red':n.category==='procedure'?'green':'gray'}">${labels[n.category]||'Info'}</span>
+        <div class="flex-between" style="gap:8px">
+          <div class="card-title">${hasPdf}${esc(n.title)}</div>
+          <span class="badge ${badgeCls[n.category]||"badge-gray"}">${catLabels[n.category]||"Info"}</span>
         </div>
-        <div class="card-meta">
-          <span>${esc(n.authorName||'')}</span>
-          <span class="dot"></span>
-          <span>${n.createdAt ? formatDate(n.createdAt.toDate()) : ''}</span>
-        </div>
-        <div class="card-preview">${esc(n.body||'')}</div>
+        <div class="card-meta"><span>${esc(n.authorName||"")}</span><span class="dot"></span><span>${n.createdAt?formatDate(n.createdAt.toDate()):""}</span></div>
+        <div class="card-preview">${esc(n.body||n.pdfText||"")}</div>
       </div>`;
-    el.onclick = () => openDetail(n, 'note');
+    el.onclick = () => openDetail(n, "note");
     list.appendChild(el);
   });
 }
 
 function renderHomeNotes() {
-  const el = document.getElementById('home-notes');
-  const recent = allNotes.slice(0,2);
-  if (!recent.length) { el.innerHTML = '<div style="font-size:13px;color:var(--text-light);padding:8px 0;">Aucune note récente.</div>'; return; }
-  el.innerHTML = '';
-  recent.forEach(n => {
-    const d = document.createElement('div');
-    d.className = 'card';
-    d.innerHTML = `<div class="card-accent ${n.category==='urgent'?'red':'green'}"></div><div class="card-inner"><div class="card-title">${esc(n.title)}</div><div class="card-preview">${esc(n.body||'')}</div></div>`;
-    d.onclick = () => { switchTab('notes', document.querySelector('[data-tab="notes"]')); openDetail(n,'note'); };
+  const el = document.getElementById("home-notes");
+  const r = allNotes.slice(0,2);
+  if (!r.length) { el.innerHTML='<div style="font-size:13px;color:var(--text-light);padding:8px 0;">Aucune note récente.</div>'; return; }
+  el.innerHTML="";
+  r.forEach(n => {
+    const d=document.createElement("div"); d.className="card";
+    d.innerHTML=`<div class="card-accent ${n.category==="urgent"?"red":"green"}"></div><div class="card-inner"><div class="card-title">${esc(n.title)}</div><div class="card-preview">${esc(n.body||n.pdfText||"")}</div></div>`;
+    d.onclick=()=>{switchTab("notes",document.querySelector("[data-tab=notes]"));openDetail(n,"note");};
     el.appendChild(d);
   });
 }
 
-window.openNewNote = () => { if(currentRole!=='directrice'){showToast('Réservé aux directrices');return;} openModal('modal-note'); };
-
 window.saveNote = async () => {
-  const title = document.getElementById('note-title-input').value.trim();
-  const body  = document.getElementById('note-body-input').value.trim();
-  const cat   = document.getElementById('note-cat-input').value;
-  if (!title || !body) { showToast('Remplissez tous les champs'); return; }
-  await addDoc(collection(db,'notes'), { title, body, category: cat, authorName: currentUserName, uid: currentUser.uid, createdAt: serverTimestamp() });
-  closeModal('modal-note');
-  document.getElementById('note-title-input').value = '';
-  document.getElementById('note-body-input').value = '';
-  showToast('Note publiée ✓');
+  const title = document.getElementById("note-title-input").value.trim();
+  const body  = document.getElementById("note-body-input").value.trim();
+  const cat   = document.getElementById("note-cat-input").value;
+  if (!title||!body) { showToast("Remplissez tous les champs", false); return; }
+  await addDoc(collection(db,"notes"),{title,body,category:cat,authorName:currentUserName,uid:currentUser.uid,createdAt:serverTimestamp()});
+  closeModal("modal-note");
+  document.getElementById("note-title-input").value="";
+  document.getElementById("note-body-input").value="";
+  showToast("Note publiée ✓");
 };
 
-window.filterNotes = (filter, el) => {
-  currentFilter = filter;
-  document.querySelectorAll('#notes-filter .chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
+window.filterNotes = (f,el) => {
+  currentNoteFilter=f;
+  document.querySelectorAll("#notes-filter .chip").forEach(c=>c.classList.remove("active"));
+  el.classList.add("active");
   renderNotes(allNotes);
 };
 
+// ── PDF IMPORT ────────────────────────────────────────────────────────
+window.handleDragOver = (e) => { e.preventDefault(); document.getElementById("upload-zone").classList.add("drag"); };
+window.handleDrop = (e) => { e.preventDefault(); document.getElementById("upload-zone").classList.remove("drag"); if(e.dataTransfer.files[0]) handlePdfFile(e.dataTransfer.files[0]); };
+window.clearPdf = () => { currentPdfText=""; currentPdfName=""; document.getElementById("pdf-preview").classList.remove("visible"); document.getElementById("pdf-file-input").value=""; document.getElementById("pdf-status").style.display="none"; };
+
+window.handlePdfFile = async (file) => {
+  if (!file||file.type!=="application/pdf") { showToast("Fichier PDF requis",false); return; }
+  currentPdfName = file.name;
+  document.getElementById("pdf-filename").textContent = file.name;
+  document.getElementById("pdf-pages").textContent = "Extraction du texte…";
+  document.getElementById("pdf-preview").classList.add("visible");
+  const status = document.getElementById("pdf-status");
+  status.style.display="block"; status.textContent="📖 Lecture du PDF…";
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+    let text = "";
+    for (let i=1;i<=pdf.numPages;i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(item=>item.str).join(" ") + "\n";
+    }
+    currentPdfText = text.trim();
+    document.getElementById("pdf-pages").textContent = `${pdf.numPages} page${pdf.numPages>1?"s":""} · ${text.length} caractères extraits`;
+    // Auto-detect title from first line
+    const firstLine = text.split("\n")[0].trim().substring(0,80);
+    if (firstLine && !document.getElementById("pdf-note-title").value) {
+      document.getElementById("pdf-note-title").value = firstLine;
+    }
+    status.textContent = "✅ PDF lu avec succès. Vérifiez le titre et publiez.";
+  } catch(e) {
+    status.textContent = "⚠️ Erreur lecture PDF : " + e.message;
+    status.style.color = "var(--red-soft)";
+  }
+};
+
+window.publishPdfNote = async () => {
+  const title = document.getElementById("pdf-note-title").value.trim();
+  const cat   = document.getElementById("pdf-note-cat").value;
+  if (!title) { showToast("Ajoutez un titre", false); return; }
+  if (!currentPdfText && !currentPdfName) { showToast("Importez un PDF d'abord", false); return; }
+  const btn = document.getElementById("pdf-publish-btn");
+  btn.textContent = "Publication…"; btn.disabled = true;
+  await addDoc(collection(db,"notes"),{
+    title, category:cat,
+    body: currentPdfText ? currentPdfText.substring(0, 5000) : "",
+    pdfText: currentPdfText ? currentPdfText.substring(0, 5000) : "",
+    pdfFilename: currentPdfName,
+    authorName: currentUserName,
+    uid: currentUser.uid,
+    createdAt: serverTimestamp()
+  });
+  closeModal("modal-note-pdf");
+  btn.textContent="Publier la note"; btn.disabled=false;
+  clearPdf();
+  document.getElementById("pdf-note-title").value="";
+  showToast("Note PDF publiée ✓");
+};
+
 // ── TODOS ─────────────────────────────────────────────────────────────
-async function loadTodos() {
-  const q = query(collection(db,'todos'), orderBy('createdAt','desc'));
-  onSnapshot(q, (snap) => {
-    allTodos = snap.docs.map(d => ({id:d.id,...d.data()}));
+function loadTodos() {
+  onSnapshot(query(collection(db,"todos"),orderBy("createdAt","desc")), snap => {
+    allTodos = snap.docs.map(d=>({id:d.id,...d.data()}));
     renderTodos(allTodos);
-    document.getElementById('stat-todos').textContent = allTodos.filter(t=>!t.done).length;
+    document.getElementById("stat-todos").textContent = allTodos.filter(t=>!t.done).length;
   });
 }
-
 function renderTodos(todos) {
-  const list = document.getElementById('todo-list');
-  let filtered = todos;
-  if (currentTodoFilter === 'pending') filtered = todos.filter(t=>!t.done);
-  if (currentTodoFilter === 'done')    filtered = todos.filter(t=> t.done);
-  if (!filtered.length) {
-    list.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">Aucune tâche ici.</div></div>';
-    return;
-  }
-  list.innerHTML = '';
-  filtered.forEach(t => {
-    const el = document.createElement('div');
-    el.className = 'todo-item';
-    el.innerHTML = `
-      <div class="todo-check ${t.done?'checked':''}" onclick="toggleTodo('${t.id}',${!t.done},this)">
-        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+  const list=document.getElementById("todo-list");
+  const f = currentTodoFilter==="all"?todos:currentTodoFilter==="done"?todos.filter(t=>t.done):todos.filter(t=>!t.done);
+  if (!f.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">Aucune tâche ici.</div></div>';return;}
+  list.innerHTML="";
+  f.forEach(t=>{
+    const el=document.createElement("div"); el.className="todo-item";
+    const canDel = currentRole==="directrice"||t.uid===currentUser.uid;
+    el.innerHTML=`<div class="todo-check ${t.done?"checked":""}" onclick="toggleTodo('${t.id}',${!t.done},this)">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div style="flex:1;min-width:0">
+        <div class="todo-text ${t.done?"done":""}">${esc(t.text)}</div>
+        <div class="todo-assignee">→ ${esc(t.assignee||"Équipe")} · ${t.createdAt?formatDate(t.createdAt.toDate()):""}</div>
       </div>
-      <div class="flex-1">
-        <div class="todo-text ${t.done?'done':''}">${esc(t.text)}</div>
-        <div class="todo-assignee">→ ${esc(t.assignee||'Équipe')} · ${t.createdAt ? formatDate(t.createdAt.toDate()) : ''}</div>
-      </div>
-      ${currentRole==='directrice'?`<button onclick="deleteTodo('${t.id}')" style="background:none;border:none;color:var(--text-light);font-size:18px;cursor:pointer;padding:4px;">×</button>`:''}`;
+      ${canDel?`<button onclick="deleteTodo('${t.id}')" style="background:none;border:none;color:var(--text-light);font-size:20px;cursor:pointer;padding:4px 6px;line-height:1">×</button>`:""}`;
     list.appendChild(el);
   });
 }
-
-window.toggleTodo = async (id, done, el) => {
-  el.classList.toggle('checked', done);
-  const textEl = el.parentElement.querySelector('.todo-text');
-  if (textEl) textEl.classList.toggle('done', done);
-  await updateDoc(doc(db,'todos',id), { done });
+window.toggleTodo = async(id,done,el)=>{
+  el.classList.toggle("checked",done);
+  el.parentElement.querySelector(".todo-text").classList.toggle("done",done);
+  await updateDoc(doc(db,"todos",id),{done});
 };
-
-window.deleteTodo = async (id) => {
-  await deleteDoc(doc(db,'todos',id));
-  showToast('Tâche supprimée');
+window.deleteTodo = async(id)=>{ await deleteDoc(doc(db,"todos",id)); showToast("Tâche supprimée"); };
+window.filterTodos = (f,el)=>{
+  currentTodoFilter=f;
+  document.querySelectorAll("#tab-todo .chip").forEach(c=>c.classList.remove("active"));
+  el.classList.add("active"); renderTodos(allTodos);
 };
-
-window.filterTodos = (f, el) => {
-  currentTodoFilter = f;
-  document.querySelectorAll('#tab-todo .chip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active');
-  renderTodos(allTodos);
-};
-
-window.openNewTodo = () => openModal('modal-todo');
-
-window.saveTodo = async () => {
-  const text     = document.getElementById('todo-text-input').value.trim();
-  const assignee = document.getElementById('todo-assignee-input').value.trim() || 'Équipe';
-  if (!text) { showToast('Décrivez la tâche'); return; }
-  await addDoc(collection(db,'todos'), { text, assignee, done: false, authorName: currentUserName, uid: currentUser.uid, createdAt: serverTimestamp() });
-  closeModal('modal-todo');
-  document.getElementById('todo-text-input').value = '';
-  document.getElementById('todo-assignee-input').value = '';
-  showToast('Tâche créée ✓');
+window.saveTodo = async()=>{
+  const text=document.getElementById("todo-text-input").value.trim();
+  const assignee=document.getElementById("todo-assignee-input").value.trim()||"Équipe";
+  if(!text){showToast("Décrivez la tâche",false);return;}
+  await addDoc(collection(db,"todos"),{text,assignee,done:false,authorName:currentUserName,uid:currentUser.uid,createdAt:serverTimestamp()});
+  closeModal("modal-todo");
+  document.getElementById("todo-text-input").value="";
+  document.getElementById("todo-assignee-input").value="";
+  showToast("Tâche créée ✓");
 };
 
 // ── ANNONCES ──────────────────────────────────────────────────────────
-async function loadAnnonces() {
-  const q = query(collection(db,'annonces'), orderBy('createdAt','desc'), limit(10));
-  onSnapshot(q, (snap) => {
-    allAnnonces = snap.docs.map(d=>({id:d.id,...d.data()}));
-    renderHomeAnnonces();
-    renderAdminAnnonces();
+function loadAnnonces() {
+  onSnapshot(query(collection(db,"annonces"),orderBy("createdAt","desc"),limit(20)), snap=>{
+    allAnnonces=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderHomeAnnonces(); renderAdminAnnonces();
   });
 }
-
 function renderHomeAnnonces() {
-  const el = document.getElementById('home-annonces');
-  const recent = allAnnonces.slice(0,2);
-  if (!recent.length) { el.innerHTML='<div style="font-size:13px;color:var(--text-light);padding:8px 0;">Aucune annonce.</div>'; return; }
-  el.innerHTML='';
-  recent.forEach(a => {
-    const d = document.createElement('div');
-    d.className='card';
-    d.innerHTML=`<div class="card-accent gold"></div><div class="card-inner"><div class="card-title">${esc(a.title)}</div><div class="card-preview">${esc(a.body||'')}</div></div>`;
-    d.onclick=()=>openDetail(a,'annonce');
-    el.appendChild(d);
+  const el=document.getElementById("home-annonces");
+  if (!allAnnonces.length){el.innerHTML='<div style="font-size:13px;color:var(--text-light);padding:8px 0;">Aucune annonce.</div>';return;}
+  el.innerHTML="";
+  allAnnonces.slice(0,2).forEach(a=>{
+    const d=document.createElement("div");d.className="card";
+    d.innerHTML=`<div class="card-accent gold"></div><div class="card-inner"><div class="card-title">${esc(a.title)}</div><div class="card-preview">${esc(a.body||"")}</div></div>`;
+    d.onclick=()=>openDetail(a,"annonce"); el.appendChild(d);
   });
 }
-
 function renderAdminAnnonces() {
-  const el = document.getElementById('annonces-list');
-  if(!el) return;
-  el.innerHTML='';
-  allAnnonces.forEach(a => {
-    const d=document.createElement('div');
-    d.className='card';
-    d.innerHTML=`<div class="card-accent gold"></div><div class="card-inner flex-between"><div><div class="card-title">${esc(a.title)}</div><div class="card-meta">${a.createdAt?formatDate(a.createdAt.toDate()):''}</div></div><button onclick="deleteAnnonce('${a.id}')" style="background:none;border:none;color:var(--text-light);font-size:18px;cursor:pointer;">×</button></div>`;
-    el.appendChild(d);
+  const el=document.getElementById("annonces-list");if(!el)return;el.innerHTML="";
+  allAnnonces.forEach(a=>{
+    const d=document.createElement("div");d.className="card";
+    d.innerHTML=`<div class="card-accent gold"></div><div class="card-inner flex-between"><div style="flex:1"><div class="card-title">${esc(a.title)}</div><div class="card-meta">${a.createdAt?formatDate(a.createdAt.toDate()):""}</div></div><button onclick="event.stopPropagation();deleteAnnonce('${a.id}')" style="background:none;border:none;color:var(--text-light);font-size:20px;cursor:pointer;padding:4px 8px">×</button></div>`;
+    d.onclick=()=>openDetail(a,"annonce"); el.appendChild(d);
   });
 }
-
-window.openNewAnnonce = () => openModal('modal-annonce');
-
-window.saveAnnonce = async () => {
-  const title = document.getElementById('annonce-title-input').value.trim();
-  const body  = document.getElementById('annonce-body-input').value.trim();
-  if (!title || !body) { showToast('Remplissez tous les champs'); return; }
-  await addDoc(collection(db,'annonces'), { title, body, authorName: currentUserName, uid: currentUser.uid, createdAt: serverTimestamp() });
-  closeModal('modal-annonce');
-  document.getElementById('annonce-title-input').value='';
-  document.getElementById('annonce-body-input').value='';
-  showToast('Annonce publiée ✓');
+window.saveAnnonce=async()=>{
+  const title=document.getElementById("annonce-title-input").value.trim();
+  const body=document.getElementById("annonce-body-input").value.trim();
+  if(!title||!body){showToast("Remplissez tous les champs",false);return;}
+  await addDoc(collection(db,"annonces"),{title,body,authorName:currentUserName,uid:currentUser.uid,createdAt:serverTimestamp()});
+  closeModal("modal-annonce");
+  document.getElementById("annonce-title-input").value="";
+  document.getElementById("annonce-body-input").value="";
+  showToast("Annonce publiée ✓");
 };
-
-window.deleteAnnonce = async (id) => {
-  await deleteDoc(doc(db,'annonces',id));
-  showToast('Annonce supprimée');
-};
+window.deleteAnnonce=async(id)=>{await deleteDoc(doc(db,"annonces",id));showToast("Annonce supprimée");};
 
 // ── INFOS ─────────────────────────────────────────────────────────────
-async function loadInfos() {
-  const q = query(collection(db,'infos'), orderBy('createdAt','asc'));
-  onSnapshot(q, (snap) => {
-    const infos = snap.docs.map(d=>({id:d.id,...d.data()}));
-    renderInfos(infos);
+function loadInfos() {
+  onSnapshot(query(collection(db,"infos"),orderBy("createdAt","asc")), snap=>{
+    const infos=snap.docs.map(d=>({id:d.id,...d.data()})); renderInfos(infos);
   });
 }
-
 function renderInfos(infos) {
-  const list = document.getElementById('infos-list');
-  if (!infos.length) {
-    list.innerHTML='<div class="empty-state"><div class="empty-icon">📁</div><div class="empty-text">Aucune information enregistrée.<br>Les directrices peuvent en ajouter.</div></div>';
-    return;
-  }
-  list.innerHTML='';
-  infos.forEach(info => {
-    const el=document.createElement('div');
-    el.className='info-section';
-    el.innerHTML=`
-      <div class="info-section-header" onclick="toggleInfo(this)">
-        <div class="info-section-title">
-          <div class="info-section-icon" style="background:var(--green-mist);">${info.icon||'📋'}</div>
-          ${esc(info.title)}
-        </div>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-light)" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="info-section-body">
-        <div style="font-size:14px;color:var(--text-mid);line-height:1.7;white-space:pre-wrap;">${esc(info.body||'')}</div>
-        ${currentRole==='directrice'?`<button class="btn-danger" style="margin-top:12px;width:100%;" onclick="deleteInfo('${info.id}')">Supprimer</button>`:''}
-      </div>`;
+  const list=document.getElementById("infos-list");
+  if(!infos.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📁</div><div class="empty-text">Aucune information enregistrée.<br>Les directrices peuvent en ajouter.</div></div>';return;}
+  list.innerHTML="";
+  infos.forEach(info=>{
+    const el=document.createElement("div");el.className="info-section";
+    el.innerHTML=`<div class="info-section-header" onclick="toggleInfo(this)">
+      <div class="info-section-title"><div class="info-section-icon">${info.icon||"📋"}</div>${esc(info.title)}</div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-light)" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="info-section-body">
+      <div style="font-size:14px;color:var(--text-mid);line-height:1.7;white-space:pre-wrap;">${esc(info.body||"")}</div>
+      ${currentRole==="directrice"?`<button class="btn-danger" style="margin-top:12px;width:100%" onclick="deleteInfo('${info.id}')">Supprimer</button>`:""}
+    </div>`;
     list.appendChild(el);
   });
 }
-
-window.toggleInfo = (header) => {
-  const body = header.nextElementSibling;
-  body.classList.toggle('open');
+window.toggleInfo=(h)=>h.nextElementSibling.classList.toggle("open");
+window.saveInfo=async()=>{
+  const title=document.getElementById("info-title-input").value.trim();
+  const icon=document.getElementById("info-icon-input").value.trim()||"📋";
+  const body=document.getElementById("info-body-input").value.trim();
+  if(!title||!body){showToast("Remplissez tous les champs",false);return;}
+  await addDoc(collection(db,"infos"),{title,icon,body,createdAt:serverTimestamp()});
+  closeModal("modal-info");
+  ["info-title-input","info-body-input","info-icon-input"].forEach(id=>document.getElementById(id).value="");
+  showToast("Section ajoutée ✓");
 };
+window.deleteInfo=async(id)=>{await deleteDoc(doc(db,"infos",id));showToast("Section supprimée");};
 
-window.openNewInfo = () => openModal('modal-info');
-
-window.saveInfo = async () => {
-  const title = document.getElementById('info-title-input').value.trim();
-  const icon  = document.getElementById('info-icon-input').value.trim() || '📋';
-  const body  = document.getElementById('info-body-input').value.trim();
-  if (!title || !body) { showToast('Remplissez tous les champs'); return; }
-  await addDoc(collection(db,'infos'), { title, icon, body, createdAt: serverTimestamp() });
-  closeModal('modal-info');
-  document.getElementById('info-title-input').value='';
-  document.getElementById('info-body-input').value='';
-  document.getElementById('info-icon-input').value='';
-  showToast('Section ajoutée ✓');
-};
-
-window.deleteInfo = async (id) => {
-  await deleteDoc(doc(db,'infos',id));
-  showToast('Section supprimée');
-};
-
-// ── ADMIN / USERS ─────────────────────────────────────────────────────
-async function loadUsers() {
-  onSnapshot(collection(db,'users'), (snap) => {
-    allUsers = snap.docs.map(d=>({id:d.id,...d.data()}));
-    document.getElementById('members-count').textContent = `${allUsers.length} membre${allUsers.length>1?'s':''}`;
+// ── USERS / ADMIN ─────────────────────────────────────────────────────
+function loadUsers() {
+  onSnapshot(collection(db,"users"), snap=>{
+    allUsers=snap.docs.map(d=>({id:d.id,...d.data()}));
+    document.getElementById("members-count").textContent=`${allUsers.length} membre${allUsers.length>1?"s":""}`;
     renderUsers();
   });
 }
-
 function renderUsers() {
-  const list = document.getElementById('users-list');
-  if (!list) return;
-  list.innerHTML='';
-  allUsers.forEach(u => {
-    const initials = (u.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    const el=document.createElement('div');
-    el.className='user-card';
-    el.innerHTML=`
-      <div class="user-avatar">${initials}</div>
+  const list=document.getElementById("users-list");if(!list)return;list.innerHTML="";
+  allUsers.forEach(u=>{
+    const ini=initials(u.name||u.email||"?");
+    const isMe = u.id===currentUser.uid;
+    const el=document.createElement("div");el.className="user-card";
+    el.innerHTML=`<div class="user-avatar">${ini}</div>
       <div class="user-info">
-        <div class="user-name">${esc(u.name||u.email||'')}</div>
-        <div class="user-email">${esc(u.email||'')} · <span class="badge badge-${u.role==='directrice'?'gold':'green'}">${u.role==='directrice'?'Directrice':'Employée'}</span></div>
+        <div class="user-name">${esc(u.name||"")} ${isMe?"(moi)":""}</div>
+        <div class="user-email">${esc(u.email||"")}</div>
       </div>
-      <div class="user-actions">
-        <button class="btn-secondary" style="padding:8px 12px;font-size:12px;" onclick="toggleRole('${u.id}','${u.role}')">
-          ${u.role==='directrice'?'→ Employée':'→ Directrice'}
-        </button>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        <span class="badge ${u.role==="directrice"?"badge-gold":"badge-green"}">${u.role==="directrice"?"Directrice":"Employée"}</span>
+        ${!isMe?`<button onclick="toggleRole('${u.id}','${u.role}')" style="font-size:11px;padding:4px 8px;border:1px solid var(--cream-warm);border-radius:20px;background:transparent;cursor:pointer;color:var(--text-mid);">${u.role==="directrice"?"→ Employée":"→ Admin"}</button>`:""}
       </div>`;
     list.appendChild(el);
   });
 }
-
-window.toggleRole = async (uid, currentR) => {
-  const newRole = currentR==='directrice'?'employee':'directrice';
-  await updateDoc(doc(db,'users',uid), { role: newRole });
-  showToast('Rôle modifié ✓');
+window.toggleRole=async(uid,r)=>{
+  const newRole=r==="directrice"?"employee":"directrice";
+  await updateDoc(doc(db,"users",uid),{role:newRole});
+  showToast("Rôle modifié ✓");
 };
-
-window.openAddUser = () => openModal('modal-user');
-
-window.saveUser = async () => {
-  const name  = document.getElementById('user-name-input').value.trim();
-  const email = document.getElementById('user-email-input').value.trim();
-  const pwd   = document.getElementById('user-pwd-input').value;
-  const role  = document.getElementById('user-role-input').value;
-  if (!name || !email || !pwd) { showToast('Remplissez tous les champs'); return; }
+window.saveUser=async()=>{
+  const name=document.getElementById("user-name-input").value.trim();
+  const email=document.getElementById("user-email-input").value.trim();
+  const pwd=document.getElementById("user-pwd-input").value;
+  const role=document.getElementById("user-role-input").value;
+  if(!name||!email||!pwd){showToast("Remplissez tous les champs",false);return;}
+  const btn=document.getElementById("user-save-btn");
+  btn.textContent="Création…";btn.disabled=true;
   try {
-    // Create auth user - note: this signs in as the new user temporarily
-    const cred = await createUserWithEmailAndPassword(auth, email, pwd);
-    await setDoc(doc(db,'users', cred.user.uid), { name, email, role, createdAt: serverTimestamp() });
-    // Sign back in as admin
+    // Save current admin session
+    const adminEmail=currentUser.email;
+    const adminPwd=prompt("Confirmez votre mot de passe admin pour créer ce compte :");
+    if(!adminPwd){btn.textContent="Créer le compte";btn.disabled=false;return;}
+    const cred=await createUserWithEmailAndPassword(auth,email,pwd);
+    await setDoc(doc(db,"users",cred.user.uid),{name,email,role,createdAt:serverTimestamp()});
+    // Re-sign in as admin
+    await signInWithEmailAndPassword(auth,adminEmail,adminPwd);
+    closeModal("modal-user");
+    ["user-name-input","user-email-input","user-pwd-input"].forEach(id=>document.getElementById(id).value="");
     showToast(`Compte créé pour ${name} ✓`);
-    closeModal('modal-user');
-    document.getElementById('user-name-input').value='';
-    document.getElementById('user-email-input').value='';
-    document.getElementById('user-pwd-input').value='';
   } catch(e) {
-    const msgs={'auth/email-already-in-use':'Email déjà utilisé.','auth/weak-password':'Mot de passe trop faible (6 car. min).'};
-    showToast(msgs[e.code]||'Erreur création compte');
+    const msgs={"auth/email-already-in-use":"Email déjà utilisé.","auth/weak-password":"Mot de passe trop faible (6 car. min)."};
+    showToast(msgs[e.code]||"Erreur: "+e.message,false);
   }
+  btn.textContent="Créer le compte";btn.disabled=false;
 };
 
-// ── DETAIL VIEW ───────────────────────────────────────────────────────
-let currentDetailItem = null;
-let currentDetailType = null;
-
-window.openDetail = (item, type) => {
-  currentDetailItem = item;
-  currentDetailType = type;
-  document.getElementById('detail-topbar-title').textContent = item.title || 'Détail';
-  document.getElementById('detail-author').innerHTML = `
-    <div class="avatar">${(item.authorName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</div>
-    <div><div class="detail-author-name">${esc(item.authorName||'Équipe HBM')}</div>
-    <div class="detail-author-date">${item.createdAt ? formatDate(item.createdAt.toDate()) : ''}</div></div>`;
-  document.getElementById('detail-body').textContent = item.body || '';
-  const deleteBtn = document.getElementById('detail-delete-btn');
-  deleteBtn.onclick = () => deleteDetailItem();
-  document.getElementById('detail-view').classList.add('open');
+// ── DETAIL ────────────────────────────────────────────────────────────
+let detailItem=null, detailType=null;
+window.openDetail=(item,type)=>{
+  detailItem=item; detailType=type;
+  document.getElementById("detail-topbar-title").textContent=item.title||"Détail";
+  const ini=initials(item.authorName||"HBM");
+  document.getElementById("detail-author").innerHTML=`<div class="avatar">${ini}</div>
+    <div><div style="font-weight:600;font-size:14px">${esc(item.authorName||"Maison HBM")}</div>
+    <div style="font-size:12px;color:var(--text-light)">${item.createdAt?formatDate(item.createdAt.toDate()):""}</div></div>`;
+  const body = item.body || item.pdfText || "";
+  document.getElementById("detail-body").textContent = body;
+  if (item.pdfFilename) {
+    document.getElementById("detail-body").textContent = `📎 ${item.pdfFilename}\n\n${body}`;
+  }
+  const delBtn=document.getElementById("detail-delete-btn");
+  delBtn.onclick=()=>deleteDetailItem();
+  document.getElementById("detail-view").classList.add("open");
 };
-
-window.closeDetail = () => {
-  document.getElementById('detail-view').classList.remove('open');
-};
-
-async function deleteDetailItem() {
-  if (!currentDetailItem) return;
-  const colMap = { note:'notes', annonce:'annonces', info:'infos' };
-  await deleteDoc(doc(db, colMap[currentDetailType]||'notes', currentDetailItem.id));
-  closeDetail();
-  showToast('Supprimé ✓');
+window.closeDetail=()=>document.getElementById("detail-view").classList.remove("open");
+async function deleteDetailItem(){
+  if(!detailItem)return;
+  const col={note:"notes",annonce:"annonces",info:"infos"};
+  await deleteDoc(doc(db,col[detailType]||"notes",detailItem.id));
+  closeDetail(); showToast("Supprimé ✓");
 }
 
 // ── NAVIGATION ────────────────────────────────────────────────────────
-window.switchTab = (tab, btn) => {
-  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
-  const pane = document.getElementById(`tab-${tab}`);
-  if (pane) pane.classList.add('active');
-  if (btn)  btn.classList.add('active');
-  const msgBar = document.getElementById('msg-input-bar');
-  msgBar.style.display = tab === 'messages' ? 'flex' : 'none';
-  if (tab === 'messages') {
-    setTimeout(() => {
-      const list = document.getElementById('msg-list');
-      list.scrollTop = list.scrollHeight;
-    }, 100);
-  }
+window.switchTab=(tab,btn)=>{
+  document.querySelectorAll(".tab-pane").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(b=>b.classList.remove("active"));
+  const pane=document.getElementById(`tab-${tab}`);
+  if(pane) pane.classList.add("active");
+  if(btn)  btn.classList.add("active");
+  const bar=document.getElementById("msg-input-bar");
+  bar.style.display = tab==="messages" ? "flex" : "none";
+  if(tab==="messages") setTimeout(()=>{const l=document.getElementById("msg-list");l.scrollTop=l.scrollHeight;},100);
 };
 
 // ── PROFILE ───────────────────────────────────────────────────────────
-window.openProfile  = () => document.getElementById('profile-overlay').classList.add('open');
-window.closeProfile = () => document.getElementById('profile-overlay').classList.remove('open');
+window.openProfile=()=>document.getElementById("profile-overlay").classList.add("open");
+window.closeProfile=()=>document.getElementById("profile-overlay").classList.remove("open");
 
 // ── MODALS ────────────────────────────────────────────────────────────
-window.openModal  = (id) => document.getElementById(id).classList.add('open');
-window.closeModal = (id) => document.getElementById(id).classList.remove('open');
-
-// Close modals on overlay click
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) overlay.classList.remove('open');
-  });
+window.openModal=(id)=>document.getElementById(id).classList.add("open");
+window.closeModal=(id)=>document.getElementById(id).classList.remove("open");
+document.querySelectorAll(".modal-overlay").forEach(o=>{
+  o.addEventListener("click",e=>{if(e.target===o)o.classList.remove("open");});
 });
 
-// ── TOAST ─────────────────────────────────────────────────────────────
-let toastTimeout;
-window.showToast = (msg) => {
-  const t = document.getElementById('toast');
-  document.getElementById('toast-msg').textContent = msg;
-  t.classList.add('visible');
-  clearTimeout(toastTimeout);
-  toastTimeout = setTimeout(() => t.classList.remove('visible'), 2500);
-};
-
-// ── UTILS ─────────────────────────────────────────────────────────────
-function esc(str) {
-  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// ── SW ────────────────────────────────────────────────────────────────
+if("serviceWorker"in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 }
-
-function formatDate(date) {
-  const now = new Date();
-  const d = new Date(date);
-  const diff = now - d;
-  if (diff < 60000) return 'À l\'instant';
-  if (diff < 3600000) return `il y a ${Math.floor(diff/60000)} min`;
-  if (diff < 86400000) return `il y a ${Math.floor(diff/3600000)}h`;
-  return d.toLocaleDateString('fr-FR', { day:'numeric', month:'short' });
-}
-
-function formatTime(date) {
-  return new Date(date).toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
-}
-
-// ── REGISTER SW ───────────────────────────────────────────────────────
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  });
-}
-
 </script>
 </body>
 </html>
