@@ -22,20 +22,56 @@ let tT,onMsgTab=false;
 // ── PWA INSTALL ──────────────────────────────────────────────
 let deferredPrompt=null;
 const isStandalone=()=>window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+const isIos=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
+const isSafari=()=>/^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+function setupInstallButton(){
+  if(isStandalone()) return; // déjà installée, on ne montre rien
+
+  const btn=$('install-btn');
+  const label=$('install-label');
+
+  if(isIos()&&isSafari()){
+    // Safari iOS : pas de beforeinstallprompt — instructions manuelles
+    label.textContent='Ajouter à l\'écran d\'accueil';
+    btn.classList.add('show');
+    btn.onclick=()=>{
+      window.closeProf();
+      setTimeout(()=>{
+        alert('Pour installer :\n\n1. Appuyez sur le bouton Partager ⬆ en bas de Safari\n2. Faites défiler et appuyez sur « Sur l\'écran d\'accueil »\n3. Appuyez sur « Ajouter »');
+      },300);
+    };
+  }
+  // Pour Chrome/Edge : on attend l'événement beforeinstallprompt
+}
+
 window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();deferredPrompt=e;
-  if(!isStandalone())$('install-btn').classList.add('show');
+  e.preventDefault();
+  deferredPrompt=e;
+  if(isStandalone()) return;
+  const btn=$('install-btn');
+  const label=$('install-label');
+  label.textContent='Installer sur cet appareil';
+  btn.classList.add('show');
+  btn.onclick=async()=>{
+    deferredPrompt.prompt();
+    const{outcome}=await deferredPrompt.userChoice;
+    if(outcome==='accepted'){
+      btn.classList.remove('show');
+      deferredPrompt=null;
+      showToast('Application installée ✓');
+    }
+    window.closeProf();
+  };
 });
+
 window.addEventListener('appinstalled',()=>{
-  deferredPrompt=null;$('install-btn').classList.remove('show');showToast('Application installée ✓');
+  deferredPrompt=null;
+  $('install-btn').classList.remove('show');
+  showToast('Application installée ✓');
 });
-window.doInstall=async()=>{
-  if(!deferredPrompt)return;
-  deferredPrompt.prompt();
-  const{outcome}=await deferredPrompt.userChoice;
-  if(outcome==='accepted'){$('install-btn').classList.remove('show');deferredPrompt=null;}
-  closeProf();
-};
+
+window.doInstall=()=>{}; // géré directement sur le bouton
 
 // ── TOAST ────────────────────────────────────────────────────
 window.showToast=(msg,ok=true)=>{
@@ -99,7 +135,7 @@ function showApp(){
   $('av-btn').textContent=i;$('prof-av').textContent=i;
   $('prof-name').textContent=myName;$('prof-tag').textContent=roleLabel(myRole);
   $('prof-email').textContent=me.email;
-  if(isStandalone())$('install-btn').classList.remove('show');
+  setupInstallButton();
   updateGreet();
   document.querySelectorAll('.tab-pane').forEach(p=>{if(p.id!=='tab-home')p.style.display='none';});
   $('tab-messages').style.display='none';

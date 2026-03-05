@@ -1,6 +1,6 @@
 // ─── VERSION — À INCRÉMENTER À CHAQUE DÉPLOIEMENT ───────────
 // Changer ce numéro force tous les appareils à vider leur cache
-const VERSION = 'hbm-v6';
+const VERSION = 'hbm-v7';
 
 const SHELL = ['/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png'];
 
