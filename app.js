@@ -171,10 +171,17 @@ window.goTab=(tab,btn)=>{
 };
 
 // ── MESSAGES ─────────────────────────────────────────────────
+function setAppBadge(n){
+  if('setAppBadge' in navigator){
+    if(n>0)navigator.setAppBadge(n).catch(()=>{});
+    else navigator.clearAppBadge().catch(()=>{});
+  }
+}
 function clearMsgBadge(){
   $('msg-badge').style.display='none';
   $('ndot').classList.remove('on');
   $('s-msg').textContent='0';
+  setAppBadge(0);
 }
 function startMsgs(){
   if(msgUnsub)msgUnsub();
@@ -237,6 +244,7 @@ function updateMsgBadge(msgs){
   const b=$('msg-badge'),d=$('ndot');
   if(n>0){b.textContent=n>9?'9+':n;b.style.display='flex';d.classList.add('on');}
   else{b.style.display='none';d.classList.remove('on');}
+  setAppBadge(n);
 }
 window.sendMsg=async()=>{
   const inp=$('msg-txt'),text=inp.value.trim();if(!text)return;
@@ -319,34 +327,231 @@ window.pubPdf=async()=>{
 };
 
 // ── TODOS ────────────────────────────────────────────────────
+let allCats=[];
+let activeCatFilter=null;
+
 function loadTodos(){
-  onSnapshot(query(collection(db,'todos'),orderBy('createdAt','desc')),snap=>{
-    allTodos=snap.docs.map(d=>({id:d.id,...d.data()}));renderTodos();$('s-todo').textContent=allTodos.filter(t=>!t.done).length;
+  onSnapshot(query(collection(db,'todoCategories'),orderBy('createdAt','asc')),snap=>{
+    allCats=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderCatChips();renderTodos();
+  });
+  onSnapshot(query(collection(db,'todos'),orderBy('createdAt','asc')),snap=>{
+    allTodos=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderTodos();
+    $('s-todo').textContent=allTodos.filter(t=>!t.done).length;
   });
 }
+
+function renderCatChips(){
+  const el=$('cat-chips');if(!el)return;
+  el.innerHTML='';
+  const all=document.createElement('div');
+  all.className='chip'+(activeCatFilter===null?' on':'');
+  all.textContent='Toutes';
+  all.onclick=()=>{activeCatFilter=null;renderCatChips();renderTodos();};
+  el.appendChild(all);
+  allCats.forEach(c=>{
+    const ch=document.createElement('div');
+    ch.className='chip'+(activeCatFilter===c.id?' on':'');
+    ch.innerHTML=(c.emoji||'📁')+' '+esc(c.name);
+    ch.onclick=()=>{activeCatFilter=c.id;renderCatChips();renderTodos();};
+    el.appendChild(ch);
+  });
+  if(myRole==='admin'){
+    const add=document.createElement('div');
+    add.className='chip chip-add';add.innerHTML='+ Catégorie';
+    add.onclick=()=>window.openMod('mod-cat');
+    el.appendChild(add);
+  }
+}
+
 function renderTodos(){
-  const list=$('todo-list');
-  const f=todoFilter==='all'?allTodos:todoFilter==='done'?allTodos.filter(t=>t.done):allTodos.filter(t=>!t.done);
-  if(!f.length){list.innerHTML='<div class="empty"><div class="empty-ico">✅</div><div class="empty-txt">Aucune tâche.</div></div>';return;}
+  const list=$('todo-list');if(!list)return;
+  const cats=activeCatFilter?allCats.filter(c=>c.id===activeCatFilter):allCats;
+  const filter=todoFilter;
+  if(!allCats.length){
+    list.innerHTML='<div class="empty"><div class="empty-ico">📋</div><div class="empty-txt">Créez une catégorie<br>pour organiser vos tâches.</div></div>';
+    return;
+  }
   list.innerHTML='';
-  f.forEach(t=>{
-    const canDel=myRole==='admin'||t.uid===me.uid;
-    const el=document.createElement('div');el.className='todo-item';
-    const chk='<div class="todo-chk '+(t.done?'on':'')+'" onclick="togTodo(\''+t.id+'\','+(+!t.done)+',this)"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>';
-    const txt='<div style="flex:1;min-width:0"><div class="todo-txt '+(t.done?'done':'')+'">'+esc(t.text)+'</div><div class="todo-who">→ '+esc(t.assignee||'Équipe')+' · '+(t.createdAt?fmtDate(t.createdAt.toDate()):'')+'</div></div>';
-    const del=canDel?'<button onclick="delTodo(\''+t.id+'\')" style="background:none;border:none;color:var(--tl);font-size:20px;cursor:pointer;padding:2px 6px">×</button>':'';
-    el.innerHTML=chk+txt+del;
-    list.appendChild(el);
+  cats.forEach(cat=>{
+    let tasks=allTodos.filter(t=>t.categoryId===cat.id);
+    if(filter==='done')tasks=tasks.filter(t=>t.done);
+    else if(filter==='pending')tasks=tasks.filter(t=>!t.done);
+    const sec=document.createElement('div');sec.className='todo-section';
+    const pending=allTodos.filter(t=>t.categoryId===cat.id&&!t.done).length;
+    const canDelCat=myRole==='admin';
+    const hdr=document.createElement('div');hdr.className='todo-cat-hdr';
+    hdr.innerHTML=
+      '<div class="todo-cat-left">'
+      +'<span class="todo-cat-emoji">'+(cat.emoji||'📁')+'</span>'
+      +'<span class="todo-cat-name">'+esc(cat.name)+'</span>'
+      +(pending>0?'<span class="todo-cat-badge">'+pending+'</span>':'')
+      +'</div>'
+      +'<div class="todo-cat-actions">'
+      +'<button class="todo-cat-add" onclick="window.openAddTodo(\''+cat.id+'\',\''+esc(cat.name)+'\')" title="Ajouter">'
+      +'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+      +'</button>'
+      +(canDelCat?'<button class="todo-cat-del" onclick="window.delCat(\''+cat.id+'\')" title="Supprimer">×</button>':'')
+      +'</div>';
+    sec.appendChild(hdr);
+    if(!tasks.length){
+      const emp=document.createElement('div');emp.className='todo-cat-empty';
+      emp.textContent=filter==='done'?'Aucune tâche terminée.':'Aucune tâche — appuyez sur + pour ajouter.';
+      sec.appendChild(emp);
+    }else{
+      tasks.forEach(t=>{
+        const canDel=myRole==='admin'||t.uid===me.uid;
+        const item=document.createElement('div');item.className='todo-item';
+        let deadlineHtml='';
+        if(t.deadline){
+          const dl=new Date(t.deadline+'T00:00:00');
+          const now=new Date();now.setHours(0,0,0,0);
+          const diffDays=Math.ceil((dl-now)/(1000*60*60*24));
+          let cls='dl-ok';
+          if(diffDays<0)cls='dl-late';
+          else if(diffDays<=2)cls='dl-soon';
+          const dlStr=dl.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+          const sfx=diffDays<0?' · en retard':diffDays===0?' · auj.':diffDays<=2?' · bientôt':'';
+          deadlineHtml='<span class="todo-deadline '+cls+'">📅 '+dlStr+sfx+'</span>';
+        }
+        const chk='<div class="todo-chk '+(t.done?'on':'')+'" onclick="window.togTodo(\''+t.id+'\','+(+!t.done)+',this)"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>';
+        const body='<div style="flex:1;min-width:0">'
+          +'<div class="todo-txt '+(t.done?'done':'')+'">'+esc(t.text)+'</div>'
+          +'<div class="todo-meta">'
+          +(t.assignee&&t.assignee!=='Équipe'?'<span>→ '+esc(t.assignee)+'</span>':'')
+          +deadlineHtml
+          +'</div></div>';
+        const del=canDel?'<button onclick="window.delTodo(\''+t.id+'\')" class="todo-del-btn">×</button>':'';
+        item.innerHTML=chk+body+del;
+        sec.appendChild(item);
+      });
+    }
+    list.appendChild(sec);
   });
 }
-window.togTodo=async(id,done,el)=>{el.classList.toggle('on',!!done);el.parentElement.querySelector('.todo-txt').classList.toggle('done',!!done);await updateDoc(doc(db,'todos',id),{done:!!done});};
+
+window.openAddTodo=(catId,catName)=>{
+  $('td-cat-id').value=catId;
+  $('td-cat-lbl').textContent='dans '+catName;
+  $('td-txt').value='';$('td-who').value='';$('td-deadline').value='';
+  window.openMod('mod-todo');
+};
+window.togTodo=async(id,done,el)=>{
+  el.classList.toggle('on',!!done);
+  el.parentElement.querySelector('.todo-txt').classList.toggle('done',!!done);
+  await updateDoc(doc(db,'todos',id),{done:!!done});
+};
 window.delTodo=async id=>{await deleteDoc(doc(db,'todos',id));showToast('Tâche supprimée');};
-window.fTodo=(f,el)=>{todoFilter=f;document.querySelectorAll('#todo-chips .chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');renderTodos();};
+window.delCat=async id=>{
+  if(!confirm('Supprimer cette catégorie et toutes ses tâches ?'))return;
+  const {getDocs,query:q2,where}=await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+  const snap=await getDocs(q2(collection(db,'todos'),where('categoryId','==',id)));
+  await Promise.all(snap.docs.map(d=>deleteDoc(doc(db,'todos',d.id))));
+  await deleteDoc(doc(db,'todoCategories',id));
+  if(activeCatFilter===id)activeCatFilter=null;
+  showToast('Catégorie supprimée');
+};
+window.fTodo=(f,el)=>{
+  todoFilter=f;
+  document.querySelectorAll('#todo-status-chips .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');renderTodos();
+};
+window.saveCat=async()=>{
+  const name=$('cat-name').value.trim(),emoji=$('cat-emoji').value.trim()||'📋';
+  if(!name){showToast('Donnez un nom à la catégorie',false);return;}
+  await addDoc(collection(db,'todoCategories'),{name,emoji,createdAt:serverTimestamp()});
+  closeMod('mod-cat');$('cat-name').value='';$('cat-emoji').value='';showToast('Catégorie créée ✓');
+};
 window.saveTodo=async()=>{
-  const txt=$('td-txt').value.trim(),who=$('td-who').value.trim()||"Équipe";
+  const txt=$('td-txt').value.trim(),who=$('td-who').value.trim()||'Équipe';
+  const catId=$('td-cat-id').value,deadline=$('td-deadline').value;
   if(!txt){showToast('Décrivez la tâche',false);return;}
-  await addDoc(collection(db,'todos'),{text:txt,assignee:who,done:false,authorName:myName,uid:me.uid,createdAt:serverTimestamp()});
-  closeMod('mod-todo');$('td-txt').value='';$('td-who').value='';showToast('Tâche créée ✓');
+  if(!catId){showToast('Sélectionnez une catégorie',false);return;}
+  const data={text:txt,assignee:who,done:false,categoryId:catId,authorName:myName,uid:me.uid,createdAt:serverTimestamp()};
+  if(deadline)data.deadline=deadline;
+  await addDoc(collection(db,'todos'),data);
+  closeMod('mod-todo');$('td-txt').value='';$('td-who').value='';$('td-deadline').value='';showToast('Tâche créée ✓');
+};
+
+// ── ROC PHOTO TODO ────────────────────────────────────────────
+window.openRoc=()=>{
+  if(!allCats.length){showToast('Créez d\'abord une catégorie',false);return;}
+  $('roc-input').value='';
+  $('roc-preview').style.display='none';
+  $('roc-preview').src='';
+  $('roc-status').style.display='none';
+  $('roc-result').style.display='none';
+  $('roc-result').innerHTML='';
+  $('roc-import-btn').style.display='none';
+  $('roc-cat-sel').innerHTML=allCats.map(c=>'<option value="'+c.id+'">'+(c.emoji||'📁')+' '+esc(c.name)+'</option>').join('');
+  window.openMod('mod-roc');
+};
+window.onRocFile=function(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{$('roc-preview').src=e.target.result;$('roc-preview').style.display='block';};
+  reader.readAsDataURL(file);
+};
+window.runRoc=async()=>{
+  const input=$('roc-input');
+  if(!input.files[0]){showToast('Sélectionnez une photo',false);return;}
+  const st=$('roc-status');
+  st.style.display='block';st.textContent='🔍 Analyse en cours…';st.style.color='var(--gm)';
+  $('roc-result').style.display='none';$('roc-import-btn').style.display='none';
+  const file=input.files[0];
+  const b64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(file);});
+  const mime=file.type||'image/jpeg';
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{
+          role:'user',
+          content:[
+            {type:'image',source:{type:'base64',media_type:mime,data:b64}},
+            {type:'text',text:'Tu es un assistant OCR. Regarde cette image et extrait les elements de liste (todo list, liste de courses, liste de taches, checklist). Retourne UNIQUEMENT un objet JSON sans markdown ni backticks : {"tasks":["tache 1","tache 2"]} Si pas de liste : {"tasks":[],"error":"Aucune liste detectee"}'}
+          ]
+        }]
+      })
+    });
+    const data=await resp.json();
+    const raw=(data.content&&data.content[0]&&data.content[0].text)||'{}';
+    let parsed;
+    try{parsed=JSON.parse(raw);}
+    catch{const m=raw.match(/\{[\s\S]*\}/);parsed=m?JSON.parse(m[0]):{tasks:[]};}
+    if(parsed.error||!parsed.tasks||!parsed.tasks.length){
+      st.textContent='⚠️ '+(parsed.error||'Aucune liste détectée dans cette image.');st.style.color='var(--rd)';return;
+    }
+    st.style.display='none';
+    const res=$('roc-result');res.style.display='block';res.innerHTML='';
+    parsed.tasks.forEach((task,i)=>{
+      const row=document.createElement('div');row.className='roc-task-row';
+      row.innerHTML='<div class="roc-task-chk on" onclick="this.classList.toggle(\'on\')"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>'
+        +'<input type="text" class="roc-task-input" value="'+esc(task)+'">';
+      res.appendChild(row);
+    });
+    $('roc-import-btn').style.display='block';
+  }catch(e){st.textContent='⚠️ Erreur: '+e.message;st.style.color='var(--rd)';}
+};
+window.importRocTasks=async()=>{
+  const catId=$('roc-cat-sel').value;
+  if(!catId){showToast('Choisissez une catégorie',false);return;}
+  const rows=document.querySelectorAll('.roc-task-row');
+  const tasks=[];
+  rows.forEach(row=>{
+    const chk=row.querySelector('.roc-task-chk');
+    const inp=row.querySelector('.roc-task-input');
+    if(chk.classList.contains('on')&&inp.value.trim())tasks.push(inp.value.trim());
+  });
+  if(!tasks.length){showToast('Aucune tâche sélectionnée',false);return;}
+  const btn=$('roc-import-btn');btn.textContent='Import…';btn.disabled=true;
+  await Promise.all(tasks.map(text=>addDoc(collection(db,'todos'),{text,categoryId:catId,done:false,assignee:'Équipe',authorName:myName,uid:me.uid,createdAt:serverTimestamp()})));
+  closeMod('mod-roc');btn.textContent='Importer les tâches sélectionnées';btn.disabled=false;
+  showToast(tasks.length+' tâche'+(tasks.length>1?'s':'')+' importée'+(tasks.length>1?'s':'')+' ✓');
 };
 
 // ── ANNONCES ─────────────────────────────────────────────────
