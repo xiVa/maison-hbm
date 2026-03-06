@@ -194,15 +194,43 @@ function renderMsgs(msgs){
   list.innerHTML='';
   msgs.forEach(m=>{
     const mine=m.uid===me.uid;
-    const row=document.createElement('div');row.className=`msg-row ${mine?'mine':'other'}`;
-    const bub=document.createElement('div');bub.className=`msg-bubble ${mine?'mine':'other'}`;
-    if(!mine){const s=document.createElement('div');s.className='msg-sender';s.textContent=m.authorName||'Équipe';bub.appendChild(s);}
+    const canDel=mine||myRole==='admin';
+    const row=document.createElement('div');
+    row.className='msg-row '+(mine?'mine':'other');
+    // Bulle
+    const bub=document.createElement('div');bub.className='msg-bubble '+(mine?'mine':'other');
+    if(!mine){const s=document.createElement('div');s.className='msg-sender';s.textContent=m.authorName||'Equipe';bub.appendChild(s);}
     const t=document.createElement('div');t.textContent=m.text;bub.appendChild(t);
     const ts=document.createElement('div');ts.className='msg-time';ts.textContent=m.createdAt?fmtTime(m.createdAt.toDate()):'';bub.appendChild(ts);
-    row.appendChild(bub);list.appendChild(row);
+    // Wrapper bulle + bouton suppr
+    const wrap=document.createElement('div');wrap.className='msg-wrap '+(mine?'mine':'other');
+    wrap.appendChild(bub);
+    if(canDel){
+      const del=document.createElement('button');
+      del.className='msg-del-btn';
+      del.innerHTML='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      del.title='Supprimer';
+      del.onclick=()=>window.delMsg(m.id);
+      wrap.appendChild(del);
+    }
+    row.appendChild(wrap);
+    list.appendChild(row);
   });
   const s=$('msg-scroll');if(s)setTimeout(()=>{s.scrollTop=s.scrollHeight;},60);
 }
+window.delMsg=async(id)=>{
+  try{await deleteDoc(doc(db,'messages',id));}
+  catch(e){showToast('Erreur: '+e.message,false);}
+};
+window.clearAllMsgs=async()=>{
+  if(!confirm('Supprimer tous les messages de la conversation ?'))return;
+  try{
+    const {getDocs}=await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    const snap=await getDocs(collection(db,'messages'));
+    await Promise.all(snap.docs.map(d=>deleteDoc(doc(db,'messages',d.id))));
+    showToast('Conversation effacée ✓');
+  }catch(e){showToast('Erreur: '+e.message,false);}
+};
 function updateMsgBadge(msgs){
   const n=msgs.filter(m=>m.uid!==me.uid).length;
   $('s-msg').textContent=n;

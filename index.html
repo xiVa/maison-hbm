@@ -162,6 +162,16 @@ body.is-admin .adm-flex{display:flex}
 .empty-ico{font-size:36px;margin-bottom:10px;opacity:.4}
 .empty-txt{font-size:13px;line-height:1.6}
 .divider{height:1px;background:var(--cw);margin:14px 0}
+
+.msg-wrap{display:flex;align-items:flex-end;gap:5px;max-width:85%}
+.msg-wrap.mine{flex-direction:row-reverse}
+.msg-wrap.other{flex-direction:row}
+.msg-wrap .msg-bubble{max-width:100%}
+.msg-del-btn{opacity:0;width:22px;height:22px;background:rgba(192,57,43,.15);border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--rd);flex-shrink:0;transition:opacity .2s;padding:0}
+.msg-del-btn:hover,.msg-del-btn:active{background:rgba(192,57,43,.25)}
+.msg-row:hover .msg-del-btn,.msg-row:focus-within .msg-del-btn{opacity:1}
+/* Sur mobile: toujours visible (pas de hover) */
+@media(hover:none){.msg-del-btn{opacity:.45}}
 </style>
 </head><body>
 <div id="screen-auth" class="screen active">
@@ -197,7 +207,7 @@ body.is-admin .adm-flex{display:flex}
         <div class="sec-lbl">Notes récentes</div><div id="home-notes"></div>
       </div>
       <div id="tab-messages" style="display:none;flex-direction:column;height:100%">
-        <div class="chan-hdr"><div class="chan-ico">💬</div><div><div style="font-weight:600;font-size:14px">Équipe HBM</div><div style="font-size:11px;color:var(--tl)" id="mbr-count">Chargement…</div></div></div>
+        <div class="chan-hdr"><div class="chan-ico">💬</div><div style="flex:1"><div style="font-weight:600;font-size:14px">Équipe HBM</div><div style="font-size:11px;color:var(--tl)" id="mbr-count">Chargement…</div></div><button class="adm" id="clear-msgs-btn" onclick="window.clearAllMsgs()" title="Effacer tous les messages" style="background:rgba(192,57,43,.15);border:1px solid rgba(192,57,43,.3);color:var(--rd);border-radius:var(--rsm);padding:6px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.5px;white-space:nowrap">🗑 Tout effacer</button></div>
         <div class="msg-scroll" id="msg-scroll"><div class="msg-list" id="msg-list"></div></div>
         <div class="msg-input-bar">
           <textarea id="msg-txt" placeholder="Écrire un message…" rows="1" oninput="window.autoR(this)" onkeydown="window.msgKD(event)"></textarea>
